@@ -97,7 +97,7 @@ export const loadFromLocalStorage = (): { html: string; css: string; js: string 
  * Default code templates
  */
 export const defaultHtml = `<div class="container">
-  <h1>Welcome to LiveWeaver</h1>
+  <h1>Welcome to Ako.js</h1>
   <p>Start editing to see your changes come to life!</p>
   <button id="changeColor">Change Color</button>
 </div>`;
@@ -112,7 +112,7 @@ export const defaultCss = `body {
 }
 
 h1 {
-  color: #2563eb;
+  color: #007ACC;
   font-weight: 700;
 }
 
@@ -124,7 +124,7 @@ h1 {
 }
 
 button {
-  background-color: #2563eb;
+  background-color: #007ACC;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -135,11 +135,11 @@ button {
 }
 
 button:hover {
-  background-color: #1d4ed8;
+  background-color: #0066a8;
 }`;
 
 export const defaultJs = `document.getElementById('changeColor').addEventListener('click', function() {
-  const colors = ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a'];
+  const colors = ['#007ACC', '#7c3aed', '#db2777', '#ea580c', '#16a34a'];
   const randomColor = colors[Math.floor(Math.random() * colors.length)];
   document.querySelector('h1').style.color = randomColor;
 });`;

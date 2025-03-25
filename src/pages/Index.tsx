@@ -12,6 +12,7 @@ import {
   saveToLocalStorage 
 } from '@/utils/editorUtils';
 import { toast } from '@/components/ui/use-toast';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Index = () => {
   // State for editor content
@@ -95,53 +96,55 @@ const Index = () => {
         toggleDarkMode={toggleDarkMode}
       />
       
-      <main className="flex flex-col flex-grow p-6 space-y-6">
-        <div className="flex flex-col flex-grow space-y-6 md:flex-row md:space-y-0 md:space-x-6">
-          {/* Editor Section */}
-          <div className="flex flex-col w-full md:w-1/2 bg-card rounded-lg border border-border overflow-hidden shadow-sm animate-fade-in">
-            <EditorControls 
-              onRun={handleRun} 
-              onReset={handleReset}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
-            
-            <div className="relative flex-grow overflow-hidden transition-all duration-300">
-              {activeTab === 'html' && (
-                <div className="absolute inset-0 p-4">
-                  <CodeEditor 
-                    value={html} 
-                    onChange={setHtml} 
-                    language="html" 
-                  />
-                </div>
-              )}
+      <main className="flex flex-col flex-grow p-4 md:p-6 space-y-4 md:space-y-6">
+        <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border border-border overflow-hidden shadow-sm animate-fade-in">
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="flex flex-col h-full bg-card">
+              <EditorControls 
+                onRun={handleRun} 
+                onReset={handleReset}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
               
-              {activeTab === 'css' && (
-                <div className="absolute inset-0 p-4">
-                  <CodeEditor 
-                    value={css} 
-                    onChange={setCss} 
-                    language="css" 
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'js' && (
-                <div className="absolute inset-0 p-4">
-                  <CodeEditor 
-                    value={js} 
-                    onChange={setJs} 
-                    language="js" 
-                  />
-                </div>
-              )}
+              <div className="relative flex-grow overflow-hidden transition-all duration-300">
+                {activeTab === 'html' && (
+                  <div className="absolute inset-0 p-4">
+                    <CodeEditor 
+                      value={html} 
+                      onChange={setHtml} 
+                      language="html" 
+                    />
+                  </div>
+                )}
+                
+                {activeTab === 'css' && (
+                  <div className="absolute inset-0 p-4">
+                    <CodeEditor 
+                      value={css} 
+                      onChange={setCss} 
+                      language="css" 
+                    />
+                  </div>
+                )}
+                
+                {activeTab === 'js' && (
+                  <div className="absolute inset-0 p-4">
+                    <CodeEditor 
+                      value={js} 
+                      onChange={setJs} 
+                      language="js" 
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </ResizablePanel>
           
-          {/* Preview Section */}
-          <div className="flex flex-col w-full md:w-1/2 animate-fade-in">
-            <div className="flex-grow">
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={50} minSize={30}>
+            <div className="h-full">
               <Preview 
                 html={html} 
                 css={css} 
@@ -150,12 +153,12 @@ const Index = () => {
                 onRunComplete={handleRunComplete}
               />
             </div>
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
       
-      <footer className="py-4 text-center text-sm text-muted-foreground border-t border-border">
-        <p>LiveWeaver - A beautiful code editor inspired by design excellence</p>
+      <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
+        <p>Ako.js - A modern web-based code editor inspired by CodePen</p>
       </footer>
     </div>
   );

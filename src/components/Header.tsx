@@ -5,12 +5,12 @@ import { toast } from '@/components/ui/use-toast';
 import { 
   Share2, 
   Save, 
-  Github, 
-  Settings, 
+  Home,
   Code2, 
-  MonitorSmartphone, 
   Moon, 
-  Sun
+  Sun,
+  User,
+  LogIn
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -51,11 +51,38 @@ const Header: React.FC<HeaderProps> = ({
     });
   };
 
+  const handleLogin = () => {
+    toast({
+      title: "Login",
+      description: "This would open a login dialog in a real application",
+    });
+  };
+
+  const handleProfile = () => {
+    toast({
+      title: "Profile",
+      description: "This would navigate to the user profile in a real application",
+    });
+  };
+
   return (
     <header className="relative z-10 flex items-center justify-between px-6 py-3 border-b backdrop-blur-md bg-white/70 dark:bg-black/40 border-border animate-slide-down">
-      <div className="flex items-center space-x-2">
-        <Code2 className="w-6 h-6 text-editor-accent" />
-        <h1 className="text-xl font-semibold tracking-tight">LiveWeaver</h1>
+      <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-2">
+          <Code2 className="w-6 h-6 text-editor-accent" />
+          <h1 className="text-xl font-semibold tracking-tight">Ako.js</h1>
+        </div>
+        
+        <nav className="hidden md:flex items-center space-x-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center space-x-1"
+          >
+            <Home className="w-4 h-4" />
+            <span>Home</span>
+          </Button>
+        </nav>
       </div>
       
       <div className="flex items-center space-x-3">
@@ -79,6 +106,26 @@ const Header: React.FC<HeaderProps> = ({
           Share
           <Share2 className="w-4 h-4 ml-2" />
         </Button>
+
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="transition-all hover:bg-secondary hidden md:flex"
+          onClick={handleLogin}
+        >
+          <LogIn className="w-4 h-4 mr-1" />
+          Login
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="transition-all hover:bg-secondary hidden md:flex"
+          onClick={handleProfile}
+        >
+          <User className="w-4 h-4 mr-1" />
+          Profile
+        </Button>
         
         <div className="flex items-center h-8 p-1 border rounded-md bg-background border-border">
           <button 
@@ -96,14 +143,6 @@ const Header: React.FC<HeaderProps> = ({
             <Moon className="w-4 h-4" />
           </button>
         </div>
-        
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="transition-all hover:bg-secondary"
-        >
-          <Settings className="w-5 h-5" />
-        </Button>
       </div>
     </header>
   );
