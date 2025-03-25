@@ -44,7 +44,7 @@ const Preview: React.FC<PreviewProps> = ({
           ref={iframeRef}
           title="Code Preview"
           className="w-full h-full border-none"
-          sandbox="allow-scripts allow-modals"
+          sandbox="allow-scripts allow-modals allow-same-origin allow-popups"
         ></iframe>
       </div>
     </div>
