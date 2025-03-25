@@ -20,25 +20,34 @@ interface HeaderProps {
   html: string;
   css: string;
   js: string;
+  script?: string;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  onSave?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   html, 
   css, 
-  js, 
+  js,
+  script = '',
   isDarkMode,
-  toggleDarkMode
+  toggleDarkMode,
+  onSave
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const handleSave = () => {
+    if (onSave) {
+      onSave();
+      return;
+    }
+    
     setIsSaving(true);
     setTimeout(() => {
-      saveToLocalStorage(html, css, js);
+      saveToLocalStorage(html, css, js, script);
       toast({
         title: "Project saved",
         description: "Your code has been saved to local storage",

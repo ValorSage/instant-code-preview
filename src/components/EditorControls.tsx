@@ -22,7 +22,7 @@ const EditorControls: React.FC<EditorControlsProps> = ({
     { id: 'html', label: 'HTML' },
     { id: 'css', label: 'CSS' },
     { id: 'js', label: 'JavaScript' },
-    { id: 'script', label: 'Script' }  // إضافة تبويب جديد للسكربت
+    { id: 'script', label: 'Script' }
   ];
 
   return (
@@ -41,7 +41,7 @@ const EditorControls: React.FC<EditorControlsProps> = ({
             {tab.id === 'script' ? (
               <div className="flex items-center">
                 <Code2 className="w-3.5 h-3.5 mr-1" />
-                {!isMobile && <span>{tab.label}</span>}
+                <span>{tab.label}</span>
               </div>
             ) : (
               tab.label

@@ -52,6 +52,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         return `${baseClasses} border-t-2 border-t-purple-500`;
       case 'js':
         return `${baseClasses} border-t-2 border-t-yellow-500`;
+      case 'script':
+        return `${baseClasses} border-t-2 border-t-green-500`;
       default:
         return baseClasses;
     }
@@ -67,7 +69,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           className={getEditorClassName()}
           spellCheck={false}
           data-language={language}
-          placeholder={`Enter your ${language.toUpperCase()} code here...`}
+          placeholder={`Enter your ${language === 'js' ? 'JavaScript' : language === 'script' ? 'Script' : language.toUpperCase()} code here...`}
         />
       </div>
     </div>

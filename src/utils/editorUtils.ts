@@ -1,3 +1,4 @@
+
 // Utility functions for our code editor
 
 /**
@@ -68,7 +69,7 @@ export const runCode = (html: string, css: string, js: string, iframe: HTMLIFram
 /**
  * Save code to localStorage
  */
-export const saveToLocalStorage = (html: string, css: string, js: string, script?: string): void => {
+export const saveToLocalStorage = (html: string, css: string, js: string, script: string = ''): void => {
   try {
     localStorage.setItem('weaveCode', JSON.stringify({ 
       html, 

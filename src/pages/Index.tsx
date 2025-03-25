@@ -20,7 +20,7 @@ const Index = () => {
   const [html, setHtml] = useState(defaultHtml);
   const [css, setCss] = useState(defaultCss);
   const [js, setJs] = useState(defaultJs);
-  const [script, setScript] = useState('// Add your script here');
+  const [script, setScript] = useState('// Add your custom script here');
   const [activeTab, setActiveTab] = useState('html');
   const [shouldRun, setShouldRun] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -33,6 +33,7 @@ const Index = () => {
       setHtml(savedCode.html);
       setCss(savedCode.css);
       setJs(savedCode.js);
+      setScript(savedCode.script || '// Add your custom script here');
       
       // Run the saved code
       setTimeout(() => {
@@ -77,7 +78,7 @@ const Index = () => {
       setHtml(defaultHtml);
       setCss(defaultCss);
       setJs(defaultJs);
-      setScript('// Add your script here');
+      setScript('// Add your custom script here');
       setShouldRun(true);
       toast({
         title: "Code reset",
@@ -90,12 +91,17 @@ const Index = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  const handleSave = () => {
+    saveToLocalStorage(html, css, js, script);
+    toast({
+      title: "Project saved",
+      description: "Your code has been saved to local storage",
+    });
+  };
+
   const getFinalJs = () => {
     // If script tab is active, combine js and script
-    if (activeTab === 'script') {
-      return `${js}\n\n// Custom script\n${script}`;
-    }
-    return js;
+    return `${js}\n\n// Custom script\n${script}`;
   };
 
   return (
@@ -103,14 +109,16 @@ const Index = () => {
       <Header 
         html={html} 
         css={css} 
-        js={js} 
+        js={js}
+        script={script}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
+        onSave={handleSave}
       />
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
         {isMobile ? (
-          // المظهر للهاتف المحمول
+          // Mobile layout
           <div className="flex flex-col h-full space-y-4 animate-fade-in">
             <div className="flex flex-col h-1/2 bg-card border border-border rounded-lg overflow-hidden shadow-sm">
               <EditorControls 
@@ -156,7 +164,7 @@ const Index = () => {
                     <CodeEditor 
                       value={script} 
                       onChange={setScript} 
-                      language="js" 
+                      language="script" 
                     />
                   </div>
                 )}
@@ -174,7 +182,7 @@ const Index = () => {
             </div>
           </div>
         ) : (
-          // المظهر للحواسيب المكتبية
+          // Desktop layout
           <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border border-border overflow-hidden shadow-sm animate-fade-in">
             <ResizablePanel defaultSize={50} minSize={30}>
               <div className="flex flex-col h-full bg-card">
@@ -221,7 +229,7 @@ const Index = () => {
                       <CodeEditor 
                         value={script} 
                         onChange={setScript} 
-                        language="js" 
+                        language="script" 
                       />
                     </div>
                   )}
