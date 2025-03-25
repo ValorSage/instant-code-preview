@@ -1,6 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { debounce } from '@/utils/editorUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CodeEditorProps {
   value: string;
@@ -16,6 +17,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   autoRun = false
 }) => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   // Handle auto-resizing of the textarea
   useEffect(() => {
@@ -40,7 +42,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   // Determine editor styling based on language
   const getEditorClassName = () => {
-    const baseClasses = "w-full h-full min-h-[300px] resize-none p-4 font-mono text-sm leading-relaxed " +
+    const baseClasses = "w-full h-full min-h-[150px] md:min-h-[300px] resize-none p-2 md:p-4 font-mono text-sm leading-relaxed " +
       "outline-none bg-editor-background text-editor-foreground rounded-md";
     
     switch (language) {

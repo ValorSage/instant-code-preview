@@ -1,4 +1,3 @@
-
 // Utility functions for our code editor
 
 /**
@@ -69,9 +68,15 @@ export const runCode = (html: string, css: string, js: string, iframe: HTMLIFram
 /**
  * Save code to localStorage
  */
-export const saveToLocalStorage = (html: string, css: string, js: string): void => {
+export const saveToLocalStorage = (html: string, css: string, js: string, script?: string): void => {
   try {
-    localStorage.setItem('weaveCode', JSON.stringify({ html, css, js, timestamp: Date.now() }));
+    localStorage.setItem('weaveCode', JSON.stringify({ 
+      html, 
+      css, 
+      js, 
+      script, 
+      timestamp: Date.now() 
+    }));
   } catch (error) {
     console.error('Failed to save to localStorage:', error);
   }
@@ -80,7 +85,7 @@ export const saveToLocalStorage = (html: string, css: string, js: string): void 
 /**
  * Load code from localStorage
  */
-export const loadFromLocalStorage = (): { html: string; css: string; js: string } | null => {
+export const loadFromLocalStorage = (): { html: string; css: string; js: string; script?: string } | null => {
   try {
     const saved = localStorage.getItem('weaveCode');
     if (saved) {

@@ -13,15 +13,18 @@ import {
 } from '@/utils/editorUtils';
 import { toast } from '@/components/ui/use-toast';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   // State for editor content
   const [html, setHtml] = useState(defaultHtml);
   const [css, setCss] = useState(defaultCss);
   const [js, setJs] = useState(defaultJs);
+  const [script, setScript] = useState('// Add your script here');
   const [activeTab, setActiveTab] = useState('html');
   const [shouldRun, setShouldRun] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const isMobile = useIsMobile();
   
   // Load saved code on initial render
   useEffect(() => {
@@ -74,6 +77,7 @@ const Index = () => {
       setHtml(defaultHtml);
       setCss(defaultCss);
       setJs(defaultJs);
+      setScript('// Add your script here');
       setShouldRun(true);
       toast({
         title: "Code reset",
@@ -86,6 +90,14 @@ const Index = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  const getFinalJs = () => {
+    // If script tab is active, combine js and script
+    if (activeTab === 'script') {
+      return `${js}\n\n// Custom script\n${script}`;
+    }
+    return js;
+  };
+
   return (
     <div className={`min-h-screen flex flex-col bg-background transition-colors duration-300`}>
       <Header 
@@ -96,10 +108,11 @@ const Index = () => {
         toggleDarkMode={toggleDarkMode}
       />
       
-      <main className="flex flex-col flex-grow p-4 md:p-6 space-y-4 md:space-y-6">
-        <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border border-border overflow-hidden shadow-sm animate-fade-in">
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="flex flex-col h-full bg-card">
+      <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
+        {isMobile ? (
+          // المظهر للهاتف المحمول
+          <div className="flex flex-col h-full space-y-4 animate-fade-in">
+            <div className="flex flex-col h-1/2 bg-card border border-border rounded-lg overflow-hidden shadow-sm">
               <EditorControls 
                 onRun={handleRun} 
                 onReset={handleReset}
@@ -109,7 +122,7 @@ const Index = () => {
               
               <div className="relative flex-grow overflow-hidden transition-all duration-300">
                 {activeTab === 'html' && (
-                  <div className="absolute inset-0 p-4">
+                  <div className="absolute inset-0 p-2">
                     <CodeEditor 
                       value={html} 
                       onChange={setHtml} 
@@ -119,7 +132,7 @@ const Index = () => {
                 )}
                 
                 {activeTab === 'css' && (
-                  <div className="absolute inset-0 p-4">
+                  <div className="absolute inset-0 p-2">
                     <CodeEditor 
                       value={css} 
                       onChange={setCss} 
@@ -129,7 +142,7 @@ const Index = () => {
                 )}
                 
                 {activeTab === 'js' && (
-                  <div className="absolute inset-0 p-4">
+                  <div className="absolute inset-0 p-2">
                     <CodeEditor 
                       value={js} 
                       onChange={setJs} 
@@ -137,24 +150,100 @@ const Index = () => {
                     />
                   </div>
                 )}
+                
+                {activeTab === 'script' && (
+                  <div className="absolute inset-0 p-2">
+                    <CodeEditor 
+                      value={script} 
+                      onChange={setScript} 
+                      language="js" 
+                    />
+                  </div>
+                )}
               </div>
             </div>
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel defaultSize={50} minSize={30}>
-            <div className="h-full">
+            
+            <div className="h-1/2">
               <Preview 
                 html={html} 
                 css={css} 
-                js={js} 
+                js={getFinalJs()} 
                 shouldRun={shouldRun}
                 onRunComplete={handleRunComplete}
               />
             </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+        ) : (
+          // المظهر للحواسيب المكتبية
+          <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border border-border overflow-hidden shadow-sm animate-fade-in">
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <div className="flex flex-col h-full bg-card">
+                <EditorControls 
+                  onRun={handleRun} 
+                  onReset={handleReset}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                />
+                
+                <div className="relative flex-grow overflow-hidden transition-all duration-300">
+                  {activeTab === 'html' && (
+                    <div className="absolute inset-0 p-4">
+                      <CodeEditor 
+                        value={html} 
+                        onChange={setHtml} 
+                        language="html" 
+                      />
+                    </div>
+                  )}
+                  
+                  {activeTab === 'css' && (
+                    <div className="absolute inset-0 p-4">
+                      <CodeEditor 
+                        value={css} 
+                        onChange={setCss} 
+                        language="css" 
+                      />
+                    </div>
+                  )}
+                  
+                  {activeTab === 'js' && (
+                    <div className="absolute inset-0 p-4">
+                      <CodeEditor 
+                        value={js} 
+                        onChange={setJs} 
+                        language="js" 
+                      />
+                    </div>
+                  )}
+                  
+                  {activeTab === 'script' && (
+                    <div className="absolute inset-0 p-4">
+                      <CodeEditor 
+                        value={script} 
+                        onChange={setScript} 
+                        language="js" 
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ResizablePanel>
+            
+            <ResizableHandle withHandle />
+            
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <div className="h-full">
+                <Preview 
+                  html={html} 
+                  css={css} 
+                  js={getFinalJs()} 
+                  shouldRun={shouldRun}
+                  onRunComplete={handleRunComplete}
+                />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </main>
       
       <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
