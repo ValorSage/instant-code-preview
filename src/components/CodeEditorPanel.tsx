@@ -3,7 +3,7 @@ import React from 'react';
 import CodeEditor from '@/components/CodeEditor';
 import EditorControls from '@/components/EditorControls';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
-import { CodeSandboxIcon, CodeXml, Package, Share2 } from 'lucide-react';
+import { CodesandboxIcon, Package, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -53,7 +53,7 @@ const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
     <div className="flex flex-col h-full bg-card">
       <div className="editor-header flex items-center justify-between py-1 px-2 bg-background border-b border-border">
         <div className="flex items-center">
-          <CodeSandboxIcon className="w-5 h-5 mr-2 text-primary" />
+          <CodesandboxIcon className="w-5 h-5 mr-2 text-primary" />
           <span className="font-medium text-sm">
             {selectedFile ? (
               <span className="flex items-center">
