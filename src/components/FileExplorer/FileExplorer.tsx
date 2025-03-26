@@ -111,6 +111,99 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
+  const handleFileDrop = (sourceId: string, targetId: string) => {
+    let sourceFile: FileType | null = null;
+    let sourceParentId: string | undefined = undefined;
+    
+    const findFileAndParent = (items: FileType[], parentId?: string): boolean => {
+      for (const item of items) {
+        if (item.id === sourceId) {
+          sourceFile = item;
+          sourceParentId = parentId;
+          return true;
+        }
+        
+        if (item.type === 'folder' && item.children) {
+          if (findFileAndParent(item.children, item.id)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    
+    findFileAndParent(files);
+    
+    if (!sourceFile) {
+      toast({
+        title: "Error",
+        description: "Source file not found",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const fileCopy = { ...sourceFile };
+    
+    const newFiles = [...files];
+    const removeFile = (items: FileType[], id: string): FileType[] => {
+      return items.filter(item => {
+        if (item.id === id) {
+          return false;
+        }
+        
+        if (item.type === 'folder' && item.children) {
+          item.children = removeFile(item.children, id);
+        }
+        
+        return true;
+      });
+    };
+    
+    const updatedFiles = removeFile(newFiles, sourceId);
+    
+    const addFileToFolder = (items: FileType[], targetId: string, file: FileType): boolean => {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].id === targetId) {
+          if (items[i].type === 'folder') {
+            if (!items[i].children) {
+              items[i].children = [];
+            }
+            items[i].children.push(file);
+            items[i].dateModified = new Date();
+            return true;
+          }
+          return false;
+        }
+        
+        if (items[i].type === 'folder' && items[i].children) {
+          if (addFileToFolder(items[i].children, targetId, file)) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    };
+    
+    if (addFileToFolder(updatedFiles, targetId, fileCopy)) {
+      onFileCreate(fileCopy, targetId);
+      onFileDelete(sourceId);
+      
+      toast({
+        title: "File moved",
+        description: `${fileCopy.name} moved successfully.`,
+        duration: 2000,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to move file. Target is not a folder.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const renderFileIcon = (file: FileType) => {
     if (file.type === 'folder') {
       return expandedFolders[file.id] ? <ChevronDown className="w-4 h-4 mr-1" /> : <ChevronRight className="w-4 h-4 mr-1" />;
@@ -443,3 +536,4 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 };
 
 export default FileExplorer;
+
