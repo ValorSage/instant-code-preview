@@ -1,11 +1,14 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import FileExplorer from '@/components/FileExplorer/FileExplorer';
+import React, { useState } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
-import EditorControls from '@/components/EditorControls';
+import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import CodeEditor from '@/components/CodeEditor';
 import Preview from '@/components/Preview';
+import { FolderOpen, Play, Undo2, Save, Menu, X } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface MobileLayoutProps {
   showFileExplorer: boolean;
@@ -54,61 +57,151 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   handleSaveAll,
   handleExportProject
 }) => {
-  return (
-    <div className="flex flex-col h-full space-y-4 animate-fade-in">
-      {/* File Explorer Dialog for Mobile */}
-      <Dialog open={showFileExplorer} onOpenChange={setShowFileExplorer}>
-        <DialogContent className="sm:max-w-[90%] h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>File Explorer</DialogTitle>
-          </DialogHeader>
-          <div className="h-[calc(100%-60px)]">
-            <FileExplorer 
-              files={files}
-              onFileSelect={(file) => {
-                handleFileSelect(file);
-                setShowFileExplorer(false);
-              }}
-              onFileCreate={handleFileCreate}
-              onFileDelete={handleFileDelete}
-              onFileRename={handleFileRename}
-              selectedFileId={selectedFile?.id || null}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+  const [currentTab, setCurrentTab] = useState<'editor' | 'preview'>('editor');
+  const [sheetOpen, setSheetOpen] = useState(false);
+  
+  const onSheetOpenChange = (open: boolean) => {
+    setSheetOpen(open);
+    if (!open) {
+      setShowFileExplorer(false);
+    }
+  };
+  
+  const handleFileSelectAndClose = (file: FileType) => {
+    handleFileSelect(file);
+    setSheetOpen(false);
+  };
+  
+  const toggleTab = () => {
+    setCurrentTab(currentTab === 'editor' ? 'preview' : 'editor');
+    
+    if (currentTab === 'editor') {
+      // When switching to preview, automatically run the code
+      handleRun();
       
-      <div className="flex flex-col h-1/2 bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-        <EditorControls 
-          onRun={handleRun} 
-          onReset={handleReset}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onAddFile={() => setShowFileExplorer(true)}
-          onSaveAll={handleSaveAll}
-          onExport={handleExportProject}
-        />
+      toast({
+        title: "المعاينة",
+        description: "تم التبديل إلى وضع المعاينة",
+        duration: 1500,
+      });
+    } else {
+      toast({
+        title: "المحرر",
+        description: "تم التبديل إلى وضع المحرر",
+        duration: 1500,
+      });
+    }
+  };
+  
+  // Language selector based on active tab or selected file
+  const languageOptions = ['html', 'css', 'javascript', 'typescript', 'python', 'java', 'cpp', 'go', 'rust'];
+  const activeLanguage = selectedFile?.language || activeTab;
+  
+  return (
+    <div className="mobile-layout h-full w-full flex flex-col">
+      <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg border border-border mb-2">
+        <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              {sheetOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-4/5">
+            <div className="h-full overflow-hidden">
+              <FileExplorer
+                files={files}
+                onFileSelect={handleFileSelectAndClose}
+                onFileCreate={handleFileCreate}
+                onFileDelete={handleFileDelete}
+                onFileRename={handleFileRename}
+                selectedFileId={selectedFile?.id || null}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
         
-        <div className="relative flex-grow overflow-hidden transition-all duration-300">
-          <div className="absolute inset-0 p-2">
+        <div className="flex space-x-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRun}
+            className="h-8"
+          >
+            <Play className="h-4 w-4 mr-1" />
+            <span className="text-xs">تشغيل</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveAll}
+            className="h-8"
+          >
+            <Save className="h-4 w-4 mr-1" />
+            <span className="text-xs">حفظ</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReset}
+            className="h-8"
+          >
+            <Undo2 className="h-4 w-4 mr-1" />
+            <span className="text-xs">إعادة تعيين</span>
+          </Button>
+        </div>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleTab}
+          className="h-8"
+        >
+          {currentTab === 'editor' ? 'المعاينة' : 'المحرر'}
+        </Button>
+      </div>
+      
+      {currentTab === 'editor' && (
+        <div className="flex flex-col flex-grow overflow-hidden">
+          <div className="mb-2">
+            <select 
+              value={activeLanguage} 
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full h-10 px-3 py-2 text-sm rounded-md border border-input bg-background"
+            >
+              {languageOptions.map(lang => (
+                <option key={lang} value={lang}>
+                  {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex-grow rounded-lg border border-border overflow-hidden">
             <CodeEditor 
               value={getEditorContent()} 
               onChange={setEditorContent} 
-              language={activeTab} 
+              language={activeLanguage} 
             />
           </div>
         </div>
-      </div>
+      )}
       
-      <div className="h-1/2">
-        <Preview 
-          html={html} 
-          css={css} 
-          js={getFinalJs()} 
-          shouldRun={shouldRun}
-          onRunComplete={onRunComplete}
-        />
-      </div>
+      {currentTab === 'preview' && (
+        <div className="flex-grow rounded-lg border border-border overflow-hidden">
+          <Preview 
+            html={html} 
+            css={css} 
+            js={getFinalJs()} 
+            shouldRun={shouldRun}
+            onRunComplete={onRunComplete}
+            activeLanguage={activeLanguage}
+            activeContent={getEditorContent()}
+            autoRefresh={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

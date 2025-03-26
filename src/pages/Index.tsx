@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
@@ -18,6 +18,23 @@ import { FileType } from '@/components/FileExplorer/FileExplorer';
 const Index = () => {
   const isMobile = useIsMobile();
   const editor = useEditor();
+  
+  // Show introduction toast on first load
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem('akojs-seen-intro');
+    
+    if (!hasSeenIntro) {
+      setTimeout(() => {
+        toast({
+          title: "Welcome to Ako.js Editor",
+          description: "Try the new split view mode and enhanced file management features!",
+          duration: 5000,
+        });
+        
+        localStorage.setItem('akojs-seen-intro', 'true');
+      }, 1000);
+    }
+  }, []);
   
   // Handle file creation
   const handleFileCreate = (file: FileType, parentId?: string) => {
@@ -144,7 +161,7 @@ const Index = () => {
       </main>
       
       <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
-        <p>Ako.js - A modern web-based code editor inspired by CodePen</p>
+        <p>Ako.js - منصة تحرير الكود المباشر بتجربة مستخدم سلسة</p>
       </footer>
     </div>
   );

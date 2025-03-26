@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { 
   saveToLocalStorage, 
@@ -15,6 +16,7 @@ import {
   getDefaultFileContent
 } from '@/utils/fileUtils';
 import { toast } from '@/hooks/use-toast';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 export const useEditor = () => {
   // State for editor content
@@ -29,6 +31,10 @@ export const useEditor = () => {
   const [files, setFiles] = useState<FileType[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [fileContent, setFileContent] = useState('');
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  
+  // Auto-save timer
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
   
   // Load saved code and files on initial render
   useEffect(() => {
@@ -53,6 +59,12 @@ export const useEditor = () => {
     // Check user's preferred color scheme
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setIsDarkMode(prefersDark);
+    
+    // Check for auto-save preference
+    const autoSavePref = localStorage.getItem('akojs-auto-save');
+    if (autoSavePref !== null) {
+      setAutoSaveEnabled(autoSavePref === 'true');
+    }
   }, []);
   
   // Apply dark mode class to document
@@ -82,11 +94,44 @@ export const useEditor = () => {
     }
   };
 
-  // Handle file content update
+  // Handle file content update with auto-save
   const handleFileContentUpdate = useCallback((content: string) => {
     if (selectedFile && selectedFile.type === 'file') {
-      // Update the file content in the files tree
-      const updatedFiles = updateFileContent(files, selectedFile.id, content);
+      // Set the file content immediately (for UI)
+      setFileContent(content);
+      
+      // If auto-save is enabled, set a timer to save after a delay
+      if (autoSaveEnabled) {
+        if (autoSaveTimer) {
+          clearTimeout(autoSaveTimer);
+        }
+        
+        const timer = setTimeout(() => {
+          // Update the file content in the files tree
+          const updatedFiles = updateFileContent(files, selectedFile.id, content);
+          setFiles(updatedFiles);
+          saveFilesToLocalStorage(updatedFiles);
+          
+          // Update the selected file reference
+          const updatedFile = findFileById(updatedFiles, selectedFile.id);
+          if (updatedFile) {
+            setSelectedFile(updatedFile);
+          }
+        }, 1000); // 1 second delay for auto-save
+        
+        setAutoSaveTimer(timer);
+      } else {
+        // If auto-save is disabled, just update the content without saving
+        // We'll save when the user explicitly requests it
+      }
+    }
+  }, [files, selectedFile, autoSaveEnabled, autoSaveTimer]);
+
+  const handleRun = () => {
+    // If a file is selected, we need to save its content first
+    if (selectedFile && selectedFile.type === 'file') {
+      // Update the file content in the files tree immediately (don't wait for auto-save)
+      const updatedFiles = updateFileContent(files, selectedFile.id, fileContent);
       setFiles(updatedFiles);
       saveFilesToLocalStorage(updatedFiles);
       
@@ -95,16 +140,6 @@ export const useEditor = () => {
       if (updatedFile) {
         setSelectedFile(updatedFile);
       }
-      
-      // Also update the file content state
-      setFileContent(content);
-    }
-  }, [files, selectedFile]);
-
-  const handleRun = () => {
-    // If a file is selected, we need to save its content first
-    if (selectedFile && selectedFile.type === 'file') {
-      handleFileContentUpdate(fileContent);
     }
     
     // Run the code in the main editor (HTML, CSS, JS)
@@ -122,15 +157,15 @@ export const useEditor = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset? This will clear your current code.')) {
+    if (window.confirm('هل أنت متأكد أنك تريد إعادة تعيين الكود؟ سيؤدي ذلك إلى مسح الكود الحالي.')) {
       setHtml(defaultHtml);
       setCss(defaultCss);
       setJs(defaultJs);
       setScript('// Add your custom script here');
       setShouldRun(true);
       toast({
-        title: "Code reset",
-        description: "Editor has been reset to default code",
+        title: "تم إعادة تعيين الكود",
+        description: "تم إعادة تعيين المحرر إلى الكود الافتراضي",
       });
     }
   };
@@ -139,21 +174,40 @@ export const useEditor = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  const toggleAutoSave = () => {
+    const newAutoSave = !autoSaveEnabled;
+    setAutoSaveEnabled(newAutoSave);
+    localStorage.setItem('akojs-auto-save', newAutoSave.toString());
+    
+    toast({
+      title: newAutoSave ? "الحفظ التلقائي مفعل" : "الحفظ التلقائي معطل",
+      description: newAutoSave 
+        ? "سيتم حفظ التغييرات تلقائياً" 
+        : "يجب الضغط على زر الحفظ لحفظ التغييرات",
+      duration: 2000,
+    });
+  };
+
   const handleSave = () => {
     // Save main editor content
     saveToLocalStorage(html, css, js, script);
     
     // If a file is selected, save its content
     if (selectedFile && selectedFile.type === 'file') {
-      handleFileContentUpdate(fileContent);
+      const updatedFiles = updateFileContent(files, selectedFile.id, fileContent);
+      setFiles(updatedFiles);
+      saveFilesToLocalStorage(updatedFiles);
+      
+      // Update the selected file reference
+      const updatedFile = findFileById(updatedFiles, selectedFile.id);
+      if (updatedFile) {
+        setSelectedFile(updatedFile);
+      }
     }
     
-    // Save all files
-    saveFilesToLocalStorage(files);
-    
     toast({
-      title: "Project saved",
-      description: "Your code has been saved to local storage",
+      title: "تم حفظ المشروع",
+      description: "تم حفظ الكود في التخزين المحلي",
     });
   };
 
@@ -165,19 +219,53 @@ export const useEditor = () => {
     saveToLocalStorage(html, css, js, script);
     
     toast({
-      title: "All files saved",
-      description: "All project files have been saved",
+      title: "تم حفظ جميع الملفات",
+      description: "تم حفظ جميع ملفات المشروع",
       duration: 2000,
     });
   };
 
   const handleExportProject = () => {
-    // TODO: Implement project export functionality
-    toast({
-      title: "Export not implemented",
-      description: "This feature will be available in a future update",
-      duration: 2000,
-    });
+    // Create a zip file with all project files
+    try {
+      // Create a JSON representation of the project
+      const projectData = {
+        html,
+        css,
+        js,
+        script,
+        files
+      };
+      
+      // Convert to JSON string
+      const jsonData = JSON.stringify(projectData, null, 2);
+      
+      // Create a blob and download it
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'akojs-project.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "تم تصدير المشروع",
+        description: "تم حفظ المشروع كملف JSON",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Failed to export project:', error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "فشل تصدير المشروع، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
   };
 
   const toggleFileExplorer = () => {
@@ -218,6 +306,7 @@ export const useEditor = () => {
     // If a file is selected, update its content
     if (selectedFile && selectedFile.type === 'file') {
       setFileContent(content);
+      handleFileContentUpdate(content);
       return;
     }
     
@@ -241,6 +330,13 @@ export const useEditor = () => {
         break;
     }
   };
+  
+  // Register keyboard shortcuts
+  const { showHelpToast } = useKeyboardShortcuts({
+    onRun: handleRun,
+    onSave: handleSave,
+    onToggleFileExplorer: toggleFileExplorer
+  });
 
   return {
     html,
@@ -261,6 +357,8 @@ export const useEditor = () => {
     setSelectedFile,
     fileContent,
     setFileContent,
+    autoSaveEnabled,
+    toggleAutoSave,
     handleFileSelect,
     handleFileContentUpdate,
     handleRun,
@@ -272,6 +370,7 @@ export const useEditor = () => {
     toggleFileExplorer,
     getFinalJs,
     getEditorContent,
-    setEditorContent
+    setEditorContent,
+    showHelpToast
   };
 };
