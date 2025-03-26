@@ -103,6 +103,8 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             js={getFinalJs()} 
             shouldRun={shouldRun}
             onRunComplete={onRunComplete}
+            activeLanguage={selectedFile?.language || activeTab}
+            activeContent={selectedFile?.content || getEditorContent()}
           />
         </div>
       </ResizablePanel>

@@ -1,6 +1,5 @@
-
 import React, { useRef, useEffect } from 'react';
-import { runCode } from '@/utils/editorUtils';
+import { runCode, runCodeWithWasm } from '@/utils/editorUtils';
 
 interface PreviewProps {
   html: string;
@@ -8,6 +7,8 @@ interface PreviewProps {
   js: string;
   shouldRun: boolean;
   onRunComplete: () => void;
+  activeLanguage?: string;
+  activeContent?: string;
 }
 
 const Preview: React.FC<PreviewProps> = ({
@@ -15,17 +16,29 @@ const Preview: React.FC<PreviewProps> = ({
   css,
   js,
   shouldRun,
-  onRunComplete
+  onRunComplete,
+  activeLanguage,
+  activeContent
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   
   useEffect(() => {
     if (shouldRun) {
       const iframe = iframeRef.current;
-      runCode(html, css, js, iframe);
+      
+      // If we have an active language that's not HTML/CSS/JS, run that
+      if (activeLanguage && 
+          !['html', 'css', 'js', 'javascript'].includes(activeLanguage.toLowerCase()) && 
+          activeContent) {
+        runCodeWithWasm(activeContent, activeLanguage, iframe);
+      } else {
+        // Otherwise run the standard HTML/CSS/JS
+        runCode(html, css, js, iframe);
+      }
+      
       onRunComplete();
     }
-  }, [shouldRun, html, css, js, onRunComplete]);
+  }, [shouldRun, html, css, js, activeLanguage, activeContent, onRunComplete]);
 
   return (
     <div className="preview-container h-full w-full overflow-hidden animate-scale-in rounded-lg border border-border neomorphism">
@@ -35,7 +48,11 @@ const Preview: React.FC<PreviewProps> = ({
           <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
           <div className="w-3 h-3 rounded-full bg-green-400"></div>
         </div>
-        <div className="text-xs font-medium text-muted-foreground">Preview</div>
+        <div className="text-xs font-medium text-muted-foreground">
+          {activeLanguage && !['html', 'css', 'js', 'javascript'].includes(activeLanguage.toLowerCase())
+            ? `Preview (${activeLanguage})`
+            : 'Preview'}
+        </div>
         <div className="w-12"></div> {/* Spacer for alignment */}
       </div>
       
