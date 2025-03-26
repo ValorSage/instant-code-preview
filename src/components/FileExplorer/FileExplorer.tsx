@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Folder, File, Plus, PlusCircle, FolderPlus, FileCode, FilePlus, Trash2, Edit, ChevronRight, ChevronDown, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,6 @@ interface FileExplorerProps {
   selectedFileId: string | null;
 }
 
-// Constants for drag and drop
 const ItemTypes = {
   FILE: 'file',
   FOLDER: 'folder',
@@ -53,7 +51,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   const [newItemLanguage, setNewItemLanguage] = useState('html');
   const [renamingFile, setRenamingFile] = useState<{ id: string; name: string } | null>(null);
   
-  // Expand all folders containing the selected file
   React.useEffect(() => {
     if (selectedFileId) {
       expandFoldersContainingFile(files, selectedFileId);
@@ -63,7 +60,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   const expandFoldersContainingFile = (files: FileType[], fileId: string, path: string[] = []) => {
     for (const file of files) {
       if (file.type === 'folder' && file.children) {
-        // Check if this folder contains the target file
         if (file.children.some(child => child.id === fileId || 
             (child.type === 'folder' && child.children?.some(c => c.id === fileId)))) {
           setExpandedFolders(prev => ({
@@ -71,7 +67,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
             [file.id]: true
           }));
         }
-        // Recursively check subfolders
         expandFoldersContainingFile(file.children, fileId, [...path, file.id]);
       }
     }
@@ -152,7 +147,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
-  // Draggable File Item Component
   const DraggableFileItem = ({ file, depth, parentId }: { file: FileType, depth: number, parentId?: string }) => {
     const isSelected = selectedFileId === file.id;
     const isExpanded = expandedFolders[file.id];
@@ -168,14 +162,11 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
     const [{ isOver, canDrop }, drop] = useDrop(() => ({
       accept: [ItemTypes.FILE, ItemTypes.FOLDER],
       drop: (item: { id: string, type: string, parentId?: string }, monitor) => {
-        // Don't allow dropping on self or parent
         if (item.id === file.id || item.parentId === file.id) return;
         
-        // Handle the file/folder move logic here
         handleFileDrop(item.id, file.id);
       },
       canDrop: (item, monitor) => {
-        // Only allow dropping into folders and not on itself or its parent
         return file.type === 'folder' && item.id !== file.id && item.parentId !== file.id;
       },
       collect: (monitor) => ({
@@ -184,24 +175,19 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       }),
     }));
 
-    // Function to move a file/folder to another folder (would be implemented in the main component)
-    const handleFileDrop = (sourceId: string, targetId: string) => {
-      // This function would typically update the files state to move the item
-      // For now, just show a toast notification
-      toast({
-        title: "File moved",
-        description: `File would be moved to the selected folder.`,
-        duration: 2000,
-      });
-    };
-
-    // Combine the refs for both drag and drop
     const itemRef = useRef(null);
-    const dragDropRef = file.type === 'folder' ? drop(drag(itemRef)) : drag(itemRef);
+    
+    const attachRef = (el: HTMLDivElement) => {
+      drag(el);
+      if (file.type === 'folder') {
+        drop(el);
+      }
+      itemRef.current = el;
+    };
 
     return (
       <div
-        ref={dragDropRef}
+        ref={attachRef}
         style={{ opacity: isDragging ? 0.5 : 1 }}
         className={`
           ${isOver && canDrop ? 'bg-primary/20' : ''}
