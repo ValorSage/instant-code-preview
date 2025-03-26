@@ -67,6 +67,45 @@ export const runCode = (html: string, css: string, js: string, iframe: HTMLIFram
 };
 
 /**
+ * Run code with WebAssembly support (for languages like Rust, C++, etc.)
+ */
+export const runCodeWithWasm = (code: string, language: string, iframe: HTMLIFrameElement | null): void => {
+  if (!iframe) return;
+  
+  // This is a placeholder for future implementation of WebAssembly based runners
+  // Will need to integrate with tools like Pyodide (Python), WebAssembly, etc.
+  
+  const errorHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .error { color: red; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h2>Language Not Supported Yet</h2>
+  <div class="error">
+    <p>Running ${language} code directly in the browser is not yet implemented.</p>
+    <p>Future versions will support this language using WebAssembly.</p>
+  </div>
+  <h3>Your Code:</h3>
+  <pre>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+</body>
+</html>
+  `;
+  
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) return;
+  
+  iframeDoc.open();
+  iframeDoc.write(errorHtml);
+  iframeDoc.close();
+};
+
+/**
  * Save code to localStorage
  */
 export const saveToLocalStorage = (html: string, css: string, js: string, script: string = ''): void => {
