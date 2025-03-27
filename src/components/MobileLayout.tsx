@@ -6,9 +6,13 @@ import { FileType } from '@/components/FileExplorer/FileExplorer';
 import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import CodeEditor from '@/components/CodeEditor';
 import Preview from '@/components/Preview';
-import { FolderOpen, Play, Undo2, Save, Menu, X, FileCode, Eye, FileDown, Share2 } from 'lucide-react';
+import { FolderOpen, Play, Undo2, Save, Menu, X, FileCode, Eye, FileDown, Share2, Search, Settings, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface MobileLayoutProps {
   showFileExplorer: boolean;
@@ -61,6 +65,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
 }) => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [viewTab, setViewTab] = useState("editor");
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+  const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
+  const [fileName, setFileName] = useState('project.html');
+  const [showAdvancedEditorControls, setShowAdvancedEditorControls] = useState(false);
   
   const onSheetOpenChange = (open: boolean) => {
     setSheetOpen(open);
@@ -89,6 +98,72 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
     }
   };
   
+  const handleShareProject = () => {
+    // Generate a unique shareable URL for the project
+    // In a real app, this would call an API to create a shareable link
+    const mockShareableUrl = `https://akojs.dev/s/${Math.random().toString(36).substring(2, 8)}`;
+    setShareUrl(mockShareableUrl);
+    setShareDialogOpen(true);
+  };
+  
+  const handleCopyShareUrl = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      toast({
+        title: "تم النسخ",
+        description: "تم نسخ رابط المشاركة إلى الحافظة",
+        duration: 2000,
+      });
+    }).catch(err => {
+      console.error('حدث خطأ أثناء نسخ الرابط:', err);
+    });
+  };
+  
+  const handleDownloadProject = () => {
+    setDownloadDialogOpen(true);
+  };
+  
+  const handleDownloadConfirm = () => {
+    // Create a complete HTML file with all the code
+    const fullHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${fileName.replace('.html', '')}</title>
+    <style>
+${css}
+    </style>
+</head>
+<body>
+${html}
+    <script>
+${getFinalJs()}
+    </script>
+</body>
+</html>
+    `;
+    
+    // Create a download link
+    const blob = new Blob([fullHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    setDownloadDialogOpen(false);
+    
+    toast({
+      title: "تم التنزيل",
+      description: `تم تنزيل المشروع كملف ${fileName}`,
+      duration: 2000,
+    });
+  };
+  
   // Language selector based on active tab or selected file
   const languageOptions = [
     'html', 'css', 'javascript', 'typescript', 
@@ -96,6 +171,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
     'rust', 'php', 'ruby', 'swift', 'kotlin', 'lua', 'sql'
   ];
   const activeLanguage = selectedFile?.language || activeTab;
+  
+  const toggleAdvancedEditorControls = () => {
+    setShowAdvancedEditorControls(!showAdvancedEditorControls);
+  };
   
   return (
     <div className="mobile-layout h-full w-full flex flex-col">
@@ -142,15 +221,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
             <span className="text-xs">حفظ</span>
           </Button>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleExportProject}
-            className="h-8"
-          >
-            <FileDown className="h-4 w-4 mr-1" />
-            <span className="text-xs">تصدير</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8"
+              >
+                <FileDown className="h-4 w-4 mr-1" />
+                <span className="text-xs">المزيد</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleExportProject}>
+                <FileDown className="h-4 w-4 mr-2" />
+                تصدير كملف JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadProject}>
+                <Download className="h-4 w-4 mr-2" />
+                تنزيل كملف HTML
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShareProject}>
+                <Share2 className="h-4 w-4 mr-2" />
+                مشاركة المشروع
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleAdvancedEditorControls}>
+                <Settings className="h-4 w-4 mr-2" />
+                خيارات المحرر
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       
@@ -167,11 +267,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         </TabsList>
         
         <TabsContent value="editor" className="flex-grow flex flex-col overflow-hidden m-0">
-          <div className="mb-2">
+          <div className="mb-2 flex">
             <select 
               value={activeLanguage} 
               onChange={(e) => setActiveTab(e.target.value)}
-              className="w-full h-10 px-3 py-2 text-sm rounded-md border border-input bg-background"
+              className="flex-1 h-10 px-3 py-2 text-sm rounded-md border border-input bg-background"
             >
               {languageOptions.map(lang => (
                 <option key={lang} value={lang}>
@@ -179,7 +279,36 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
                 </option>
               ))}
             </select>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleAdvancedEditorControls}
+              className="ml-2 h-10"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
+          
+          {showAdvancedEditorControls && (
+            <div className="mb-2 p-2 bg-muted/20 rounded-md border border-border">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <Button size="sm" variant="outline" className="h-8 text-xs">
+                  تنسيق الكود
+                </Button>
+                <Button size="sm" variant="outline" className="h-8 text-xs">
+                  ضغط الكود
+                </Button>
+                <Button size="sm" variant="outline" className="h-8 text-xs">
+                  إلغاء التراجع
+                </Button>
+                <Button size="sm" variant="outline" className="h-8 text-xs">
+                  <Search className="h-3.5 w-3.5 mr-1" />
+                  بحث واستبدال
+                </Button>
+              </div>
+            </div>
+          )}
           
           <div className="flex-grow rounded-lg border border-border overflow-hidden">
             <CodeEditor 
@@ -205,6 +334,74 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* Share Project Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>مشاركة المشروع</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center space-x-2 pt-4">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="share-link" className="sr-only">
+                رابط المشاركة
+              </Label>
+              <Input
+                id="share-link"
+                dir="ltr"
+                defaultValue={shareUrl}
+                readOnly
+                className="h-9"
+              />
+            </div>
+            <Button size="sm" onClick={handleCopyShareUrl}>
+              نسخ
+            </Button>
+          </div>
+          <DialogFooter className="sm:justify-start">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShareDialogOpen(false)}
+            >
+              إغلاق
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Download Project Dialog */}
+      <Dialog open={downloadDialogOpen} onOpenChange={setDownloadDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>تنزيل المشروع</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="file-name">اسم الملف</Label>
+              <Input
+                id="file-name"
+                dir="ltr"
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDownloadDialogOpen(false)}
+            >
+              إلغاء
+            </Button>
+            <Button type="button" onClick={handleDownloadConfirm}>
+              تنزيل
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

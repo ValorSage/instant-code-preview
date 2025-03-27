@@ -32,6 +32,15 @@ export const useEditor = () => {
   const [selectedFile, setSelectedFile] = useState<FileType | null>(null);
   const [fileContent, setFileContent] = useState('');
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [editorSettings, setEditorSettings] = useState({
+    fontSize: 14,
+    tabSize: 2,
+    wordWrap: true,
+    minimap: false,
+    lineNumbers: true,
+    fontFamily: 'Menlo, monospace',
+    formatOnSave: true,
+  });
   
   // Auto-save timer
   const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null);
@@ -58,12 +67,40 @@ export const useEditor = () => {
     
     // Check user's preferred color scheme
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDarkMode(prefersDark);
+    
+    // Check for saved theme preference
+    const themeMode = localStorage.getItem('akojs-theme-mode');
+    if (themeMode === 'dark') {
+      setIsDarkMode(true);
+    } else if (themeMode === 'light') {
+      setIsDarkMode(false);
+    } else if (themeMode === 'system') {
+      // Set according to system preference
+      setIsDarkMode(prefersDark);
+    } else {
+      // No saved preference, use system preference
+      setIsDarkMode(prefersDark);
+      localStorage.setItem('akojs-theme-mode', 'system');
+    }
     
     // Check for auto-save preference
     const autoSavePref = localStorage.getItem('akojs-auto-save');
     if (autoSavePref !== null) {
       setAutoSaveEnabled(autoSavePref === 'true');
+    }
+    
+    // Load editor settings from localStorage
+    const savedSettings = localStorage.getItem('akojs-editor-settings');
+    if (savedSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedSettings);
+        setEditorSettings(prevSettings => ({
+          ...prevSettings,
+          ...parsedSettings
+        }));
+      } catch (error) {
+        console.error('Error parsing editor settings:', error);
+      }
     }
   }, []);
   
@@ -146,8 +183,8 @@ export const useEditor = () => {
     setShouldRun(true);
     
     toast({
-      title: "Code executed",
-      description: "Your code is now running in the preview",
+      title: "تم تنفيذ الكود",
+      description: "تم تنفيذ الكود في نافذة المعاينة",
       duration: 2000,
     });
   };
@@ -170,23 +207,30 @@ export const useEditor = () => {
     }
   };
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const toggleAutoSave = () => {
-    const newAutoSave = !autoSaveEnabled;
-    setAutoSaveEnabled(newAutoSave);
-    localStorage.setItem('akojs-auto-save', newAutoSave.toString());
-    
-    toast({
-      title: newAutoSave ? "الحفظ التلقائي مفعل" : "الحفظ التلقائي معطل",
-      description: newAutoSave 
-        ? "سيتم حفظ التغييرات تلقائياً" 
-        : "يجب الضغط على زر الحفظ لحفظ التغييرات",
-      duration: 2000,
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prevMode => {
+      const newMode = !prevMode;
+      localStorage.setItem('akojs-theme-mode', newMode ? 'dark' : 'light');
+      return newMode;
     });
-  };
+  }, []);
+
+  const toggleAutoSave = useCallback(() => {
+    setAutoSaveEnabled(prevValue => {
+      const newValue = !prevValue;
+      localStorage.setItem('akojs-auto-save', newValue.toString());
+      
+      toast({
+        title: newValue ? "الحفظ التلقائي مفعل" : "الحفظ التلقائي معطل",
+        description: newValue 
+          ? "سيتم حفظ التغييرات تلقائياً" 
+          : "يجب الضغط على زر الحفظ لحفظ التغييرات",
+        duration: 2000,
+      });
+      
+      return newValue;
+    });
+  }, []);
 
   const handleSave = () => {
     // Save main editor content
@@ -330,6 +374,21 @@ export const useEditor = () => {
         break;
     }
   };
+
+  // Update editor settings
+  const updateEditorSettings = useCallback((newSettings: Partial<typeof editorSettings>) => {
+    setEditorSettings(prevSettings => {
+      const updatedSettings = { ...prevSettings, ...newSettings };
+      localStorage.setItem('akojs-editor-settings', JSON.stringify(updatedSettings));
+      return updatedSettings;
+    });
+    
+    toast({
+      title: "تم تحديث الإعدادات",
+      description: "تم تحديث إعدادات المحرر بنجاح",
+      duration: 2000,
+    });
+  }, []);
   
   // Register keyboard shortcuts
   const { showHelpToast } = useKeyboardShortcuts({
@@ -359,6 +418,8 @@ export const useEditor = () => {
     setFileContent,
     autoSaveEnabled,
     toggleAutoSave,
+    editorSettings,
+    updateEditorSettings,
     handleFileSelect,
     handleFileContentUpdate,
     handleRun,

@@ -5,7 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
 import MobileLayout from '@/components/MobileLayout';
 import DesktopLayout from '@/components/DesktopLayout';
-import { Button } from '@/components/ui/button'; // Added missing import
+import { Button } from '@/components/ui/button';
 import { 
   addFileToTree,
   deleteFileFromTree,
@@ -18,7 +18,10 @@ import { toast } from '@/hooks/use-toast';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Users } from 'lucide-react';
+import { Search, Users, Settings, Keyboard } from 'lucide-react';
+import SearchDialog from '@/components/SearchDialog';
+import CollaborationPanel from '@/components/CollaborationPanel';
+import AdvancedSettings from '@/components/AdvancedSettings';
 
 // This would be populated from real user data in a full implementation
 const onlineUsers = [
@@ -30,6 +33,10 @@ const Index = () => {
   const isMobile = useIsMobile();
   const editor = useEditor();
   const [showCollaborators, setShowCollaborators] = useState(false);
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const [collaborationPanelOpen, setCollaborationPanelOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = useState(false);
   
   // Show introduction toast on first load
   useEffect(() => {
@@ -119,16 +126,33 @@ const Index = () => {
   };
 
   // Toggle collaborators visibility
-  const toggleCollaborators = () => {
-    setShowCollaborators(!showCollaborators);
+  const toggleCollaborationPanel = () => {
+    setCollaborationPanelOpen(!collaborationPanelOpen);
     
-    if (!showCollaborators) {
+    if (!collaborationPanelOpen) {
       toast({
         title: "التعاون في الوقت الحقيقي",
-        description: "سيتم توفير ميزات التعاون الكامل قريباً!",
+        description: "تم تفعيل لوحة التعاون. شاهد تغييرات المتعاونين في الوقت الفعلي!",
         duration: 3000,
       });
     }
+  };
+
+  const handleSearchDialogOpen = () => {
+    setSearchDialogOpen(true);
+  };
+
+  const handleSettingsDialogOpen = () => {
+    setSettingsDialogOpen(true);
+  };
+
+  const handleKeyboardShortcutsOpen = () => {
+    editor.showHelpToast();
+  };
+
+  const handleFileSelectFromSearch = (file: FileType) => {
+    editor.handleFileSelect(file);
+    setSearchDialogOpen(false);
   };
 
   return (
@@ -144,35 +168,56 @@ const Index = () => {
       />
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
-        {/* Collaboration indicators (will be fully implemented in future) */}
-        <div className="flex items-center justify-end px-2">
+        {/* Action toolbar */}
+        <div className="flex items-center justify-end px-2 gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={toggleCollaborators} className="relative">
-                  <Users className="h-4 w-4 mr-1" />
-                  <span className="text-xs">التعاون</span>
-                  {showCollaborators && (
-                    <div className="absolute top-full right-0 mt-2 p-2 bg-card border border-border rounded-md shadow-md z-50 min-w-[200px]">
-                      <div className="text-xs font-medium mb-2">المستخدمون المتصلون:</div>
-                      {onlineUsers.map(user => (
-                        <div key={user.id} className="flex items-center mb-1">
-                          <div 
-                            className="w-3 h-3 rounded-full mr-2" 
-                            style={{ backgroundColor: user.color }}
-                          ></div>
-                          <span className="text-xs">{user.name}</span>
-                        </div>
-                      ))}
-                      <div className="text-xs text-muted-foreground mt-2">
-                        ستتوفر ميزات التعاون الكامل قريباً!
-                      </div>
-                    </div>
-                  )}
+                <Button variant="ghost" size="sm" onClick={handleSearchDialogOpen} className="h-8 w-8 p-1">
+                  <Search className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                التعاون في الوقت الحقيقي
+                <p>بحث في الملفات (Ctrl+Shift+F)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={toggleCollaborationPanel} className="h-8 w-8 p-1">
+                  <Users className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>التعاون في الوقت الحقيقي</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={handleSettingsDialogOpen} className="h-8 w-8 p-1">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>إعدادات متقدمة</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={handleKeyboardShortcutsOpen} className="h-8 w-8 p-1">
+                  <Keyboard className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>اختصارات لوحة المفاتيح</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -242,6 +287,29 @@ const Index = () => {
           <Badge variant="outline" className="text-xs h-5">Multi-language</Badge>
         </div>
       </footer>
+      
+      {/* Modals and Panels */}
+      <SearchDialog 
+        isOpen={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        files={editor.files}
+        onFileSelect={handleFileSelectFromSearch}
+        searchContent={true}
+      />
+      
+      <CollaborationPanel
+        isOpen={collaborationPanelOpen}
+        onClose={() => setCollaborationPanelOpen(false)}
+      />
+      
+      <AdvancedSettings
+        isOpen={settingsDialogOpen}
+        onClose={() => setSettingsDialogOpen(false)}
+        autoSaveEnabled={editor.autoSaveEnabled}
+        onToggleAutoSave={editor.toggleAutoSave}
+        isDarkMode={editor.isDarkMode}
+        onToggleDarkMode={editor.toggleDarkMode}
+      />
     </div>
   );
 };
