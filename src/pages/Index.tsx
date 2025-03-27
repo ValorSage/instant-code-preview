@@ -18,10 +18,12 @@ import { toast } from '@/hooks/use-toast';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Search, Users, Settings, Keyboard } from 'lucide-react';
+import { Folders, Search, Users, Settings, Keyboard, FileBadge } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import CollaborationPanel from '@/components/CollaborationPanel';
 import AdvancedSettings from '@/components/AdvancedSettings';
+import ProjectManagementDialog from '@/components/ProjectManagementDialog';
+import { useProjects } from '@/contexts/ProjectContext';
 
 // This would be populated from real user data in a full implementation
 const onlineUsers = [
@@ -32,11 +34,13 @@ const onlineUsers = [
 const Index = () => {
   const isMobile = useIsMobile();
   const editor = useEditor();
+  const { currentProject } = useProjects();
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [collaborationPanelOpen, setCollaborationPanelOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = useState(false);
+  const [projectManagementOpen, setProjectManagementOpen] = useState(false);
   
   // Show introduction toast on first load
   useEffect(() => {
@@ -150,6 +154,10 @@ const Index = () => {
     editor.showHelpToast();
   };
 
+  const handleProjectManagementOpen = () => {
+    setProjectManagementOpen(true);
+  };
+
   const handleFileSelectFromSearch = (file: FileType) => {
     editor.handleFileSelect(file);
     setSearchDialogOpen(false);
@@ -169,58 +177,81 @@ const Index = () => {
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
         {/* Action toolbar */}
-        <div className="flex items-center justify-end px-2 gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={handleSearchDialogOpen} className="h-8 w-8 p-1">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>بحث في الملفات (Ctrl+Shift+F)</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center space-x-2">
+            {currentProject ? (
+              <Badge variant="outline" className="text-xs px-3 py-1 h-7">
+                {currentProject.name}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs px-3 py-1 h-7 bg-muted text-muted-foreground">
+                لا يوجد مشروع
+              </Badge>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleProjectManagementOpen}
+              className="h-7 gap-1 text-xs"
+            >
+              <Folders className="h-3.5 w-3.5" />
+              <span>إدارة المشاريع</span>
+            </Button>
+          </div>
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={toggleCollaborationPanel} className="h-8 w-8 p-1">
-                  <Users className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>التعاون في الوقت الحقيقي</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={handleSettingsDialogOpen} className="h-8 w-8 p-1">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>إعدادات متقدمة</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={handleKeyboardShortcutsOpen} className="h-8 w-8 p-1">
-                  <Keyboard className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>اختصارات لوحة المفاتيح</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={handleSearchDialogOpen} className="h-8 w-8 p-1">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>بحث في الملفات (Ctrl+Shift+F)</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={toggleCollaborationPanel} className="h-8 w-8 p-1">
+                    <Users className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>التعاون في الوقت الحقيقي</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={handleSettingsDialogOpen} className="h-8 w-8 p-1">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>إعدادات متقدمة</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={handleKeyboardShortcutsOpen} className="h-8 w-8 p-1">
+                    <Keyboard className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>اختصارات لوحة المفاتيح</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
         
         {isMobile ? (
@@ -309,6 +340,11 @@ const Index = () => {
         onToggleAutoSave={editor.toggleAutoSave}
         isDarkMode={editor.isDarkMode}
         onToggleDarkMode={editor.toggleDarkMode}
+      />
+      
+      <ProjectManagementDialog
+        isOpen={projectManagementOpen}
+        onClose={() => setProjectManagementOpen(false)}
       />
     </div>
   );
