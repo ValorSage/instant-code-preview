@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { runCode, runCodeWithWasm } from '@/utils/editorUtils';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Maximize2, Minimize2, Code, Terminal } from 'lucide-react';
+import { RefreshCw, Maximize2, Minimize2, Code, Terminal, Download, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface PreviewProps {
@@ -135,6 +135,51 @@ const Preview: React.FC<PreviewProps> = ({
     setConsoleLogs([]);
   };
 
+  const downloadResult = () => {
+    if (!iframeRef.current) return;
+    
+    try {
+      const iframeDocument = iframeRef.current.contentDocument;
+      if (!iframeDocument) return;
+      
+      const htmlContent = iframeDocument.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ako-result.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Downloaded Result",
+        description: "Preview content has been downloaded as HTML",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Failed to download result:', error);
+      toast({
+        title: "Download Failed",
+        description: "Could not download the preview content",
+        variant: "destructive",
+        duration: 2000,
+      });
+    }
+  };
+
+  const shareResult = () => {
+    // In a future implementation, this would generate a shareable link
+    // For now, we'll show a toast that this feature is coming soon
+    toast({
+      title: "Sharing Coming Soon",
+      description: "Real-time collaboration features will be available soon!",
+      duration: 3000,
+    });
+  };
+
   return (
     <div className="preview-container h-full w-full overflow-hidden animate-scale-in rounded-lg border border-border neomorphism">
       <div className="flex items-center justify-between p-2 bg-muted border-b border-border">
@@ -165,6 +210,24 @@ const Preview: React.FC<PreviewProps> = ({
             onClick={toggleConsole}
           >
             <Terminal className={`h-3.5 w-3.5 ${showConsole ? 'text-primary' : ''}`} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6" 
+            onClick={downloadResult}
+            title="Download result"
+          >
+            <Download className="h-3.5 w-3.5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6" 
+            onClick={shareResult}
+            title="Share result"
+          >
+            <Share2 className="h-3.5 w-3.5" />
           </Button>
           <Button 
             variant="ghost" 

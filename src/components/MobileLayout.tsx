@@ -6,8 +6,9 @@ import { FileType } from '@/components/FileExplorer/FileExplorer';
 import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import CodeEditor from '@/components/CodeEditor';
 import Preview from '@/components/Preview';
-import { FolderOpen, Play, Undo2, Save, Menu, X, FileCode, Eye } from 'lucide-react';
+import { FolderOpen, Play, Undo2, Save, Menu, X, FileCode, Eye, FileDown, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface MobileLayoutProps {
   showFileExplorer: boolean;
@@ -58,8 +59,8 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   handleSaveAll,
   handleExportProject
 }) => {
-  const [currentTab, setCurrentTab] = useState<'editor' | 'preview'>('editor');
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [viewTab, setViewTab] = useState("editor");
   
   const onSheetOpenChange = (open: boolean) => {
     setSheetOpen(open);
@@ -73,10 +74,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
     setSheetOpen(false);
   };
   
-  const toggleTab = () => {
-    setCurrentTab(currentTab === 'editor' ? 'preview' : 'editor');
+  const handleViewChange = (tab: string) => {
+    setViewTab(tab);
     
-    if (currentTab === 'editor') {
+    if (tab === 'preview') {
       // When switching to preview, automatically run the code
       handleRun();
       
@@ -85,17 +86,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         description: "تم التبديل إلى وضع المعاينة",
         duration: 1500,
       });
-    } else {
-      toast({
-        title: "المحرر",
-        description: "تم التبديل إلى وضع المحرر",
-        duration: 1500,
-      });
     }
   };
   
   // Language selector based on active tab or selected file
-  const languageOptions = ['html', 'css', 'javascript', 'typescript', 'python', 'java', 'cpp', 'go', 'rust'];
+  const languageOptions = [
+    'html', 'css', 'javascript', 'typescript', 
+    'python', 'java', 'cpp', 'csharp', 'go', 
+    'rust', 'php', 'ruby', 'swift', 'kotlin', 'lua', 'sql'
+  ];
   const activeLanguage = selectedFile?.language || activeTab;
   
   return (
@@ -146,29 +145,28 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleReset}
+            onClick={handleExportProject}
             className="h-8"
           >
-            <Undo2 className="h-4 w-4 mr-1" />
-            <span className="text-xs">إعادة تعيين</span>
+            <FileDown className="h-4 w-4 mr-1" />
+            <span className="text-xs">تصدير</span>
           </Button>
         </div>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleTab}
-          className="h-8"
-        >
-          {currentTab === 'editor' ? 
-            <><Eye className="h-4 w-4 mr-1" /> المعاينة</> : 
-            <><FileCode className="h-4 w-4 mr-1" /> المحرر</>
-          }
-        </Button>
       </div>
       
-      {currentTab === 'editor' && (
-        <div className="flex flex-col flex-grow overflow-hidden">
+      <Tabs value={viewTab} onValueChange={handleViewChange} className="flex-grow flex flex-col">
+        <TabsList className="grid grid-cols-2 mb-2">
+          <TabsTrigger value="editor" className="flex items-center">
+            <FileCode className="h-4 w-4 mr-1.5" />
+            المحرر
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center">
+            <Eye className="h-4 w-4 mr-1.5" />
+            المعاينة
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="editor" className="flex-grow flex flex-col overflow-hidden m-0">
           <div className="mb-2">
             <select 
               value={activeLanguage} 
@@ -190,23 +188,23 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
               language={activeLanguage} 
             />
           </div>
-        </div>
-      )}
-      
-      {currentTab === 'preview' && (
-        <div className="flex-grow rounded-lg border border-border overflow-hidden">
-          <Preview 
-            html={html} 
-            css={css} 
-            js={getFinalJs()} 
-            shouldRun={shouldRun}
-            onRunComplete={onRunComplete}
-            activeLanguage={activeLanguage}
-            activeContent={getEditorContent()}
-            autoRefresh={true}
-          />
-        </div>
-      )}
+        </TabsContent>
+        
+        <TabsContent value="preview" className="flex-grow m-0 overflow-hidden">
+          <div className="h-full rounded-lg border border-border overflow-hidden">
+            <Preview 
+              html={html} 
+              css={css} 
+              js={getFinalJs()} 
+              shouldRun={shouldRun}
+              onRunComplete={onRunComplete}
+              activeLanguage={activeLanguage}
+              activeContent={getEditorContent()}
+              autoRefresh={true}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

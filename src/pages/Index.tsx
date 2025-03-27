@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
@@ -15,10 +15,20 @@ import {
 } from '@/utils/fileUtils';
 import { toast } from '@/hooks/use-toast';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users } from 'lucide-react';
+
+// This would be populated from real user data in a full implementation
+const onlineUsers = [
+  { id: 'u1', name: 'User 1', color: '#4f46e5' },
+  { id: 'u2', name: 'User 2', color: '#059669' },
+];
 
 const Index = () => {
   const isMobile = useIsMobile();
   const editor = useEditor();
+  const [showCollaborators, setShowCollaborators] = useState(false);
   
   // Show introduction toast on first load
   useEffect(() => {
@@ -107,6 +117,19 @@ const Index = () => {
     });
   };
 
+  // Toggle collaborators visibility
+  const toggleCollaborators = () => {
+    setShowCollaborators(!showCollaborators);
+    
+    if (!showCollaborators) {
+      toast({
+        title: "التعاون في الوقت الحقيقي",
+        description: "سيتم توفير ميزات التعاون الكامل قريباً!",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <div className={`min-h-screen flex flex-col bg-background transition-colors duration-300`}>
       <Header 
@@ -120,6 +143,40 @@ const Index = () => {
       />
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
+        {/* Collaboration indicators (will be fully implemented in future) */}
+        <div className="flex items-center justify-end px-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={toggleCollaborators} className="relative">
+                  <Users className="h-4 w-4 mr-1" />
+                  <span className="text-xs">التعاون</span>
+                  {showCollaborators && (
+                    <div className="absolute top-full right-0 mt-2 p-2 bg-card border border-border rounded-md shadow-md z-50 min-w-[200px]">
+                      <div className="text-xs font-medium mb-2">المستخدمون المتصلون:</div>
+                      {onlineUsers.map(user => (
+                        <div key={user.id} className="flex items-center mb-1">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: user.color }}
+                          ></div>
+                          <span className="text-xs">{user.name}</span>
+                        </div>
+                      ))}
+                      <div className="text-xs text-muted-foreground mt-2">
+                        ستتوفر ميزات التعاون الكامل قريباً!
+                      </div>
+                    </div>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                التعاون في الوقت الحقيقي
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
         {isMobile ? (
           // Mobile layout
           <MobileLayout 
@@ -155,6 +212,7 @@ const Index = () => {
             handleFileCreate={handleFileCreate}
             handleFileDelete={handleFileDelete}
             handleFileRename={handleFileRename}
+            handleFileMove={handleFileMove}
             selectedFile={editor.selectedFile}
             activeTab={editor.activeTab}
             setActiveTab={editor.setActiveTab}
@@ -177,6 +235,11 @@ const Index = () => {
       
       <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
         <p>Ako.js - منصة تحرير الكود المباشر بتجربة مستخدم سلسة</p>
+        <div className="flex items-center justify-center mt-1 space-x-2">
+          <Badge variant="outline" className="text-xs h-5">v1.0</Badge>
+          <Badge variant="outline" className="text-xs h-5">Arabic UI</Badge>
+          <Badge variant="outline" className="text-xs h-5">Multi-language</Badge>
+        </div>
       </footer>
     </div>
   );
