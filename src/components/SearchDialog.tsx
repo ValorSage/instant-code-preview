@@ -15,6 +15,11 @@ interface SearchDialogProps {
   searchContent?: boolean;
 }
 
+// Extended type for internal use with file path
+interface FileWithPath extends FileType {
+  path: string;
+}
+
 const SearchDialog: React.FC<SearchDialogProps> = ({
   isOpen,
   onClose,
@@ -23,11 +28,11 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
   searchContent = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredFiles, setFilteredFiles] = useState<FileType[]>([]);
+  const [filteredFiles, setFilteredFiles] = useState<FileWithPath[]>([]);
   
   // Flatten file structure into searchable array
-  const flattenFiles = useCallback((fileList: FileType[], path: string = ''): FileType[] => {
-    return fileList.reduce((acc: FileType[], file) => {
+  const flattenFiles = useCallback((fileList: FileType[], path: string = ''): FileWithPath[] => {
+    return fileList.reduce((acc: FileWithPath[], file) => {
       // Add current path to file
       const filePath = path ? `${path}/${file.name}` : file.name;
       const fileWithPath = { ...file, path: filePath };
@@ -68,8 +73,20 @@ const SearchDialog: React.FC<SearchDialogProps> = ({
     setFilteredFiles(results);
   }, [searchQuery, files, flattenFiles, searchContent]);
   
-  const handleSelect = (file: FileType) => {
-    onFileSelect(file);
+  const handleSelect = (file: FileWithPath) => {
+    // Convert back to FileType when passing to parent component
+    const originalFile: FileType = {
+      id: file.id,
+      name: file.name,
+      type: file.type,
+      content: file.content,
+      children: file.children,
+      language: file.language,
+      dateCreated: file.dateCreated,
+      dateModified: file.dateModified
+    };
+    
+    onFileSelect(originalFile);
     onClose();
     setSearchQuery('');
   };
