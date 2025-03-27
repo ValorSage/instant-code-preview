@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, FolderPlus, Link, LinkOff } from 'lucide-react';
+import { Check, FolderPlus, Link, Link2Off } from 'lucide-react';
 import { useProjects, Project } from '@/contexts/ProjectContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -151,7 +150,7 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({ screenId }) => {
           onClick={handleUnlinkProject}
           title="فصل المشروع عن الشاشة"
         >
-          <LinkOff className="h-4 w-4" />
+          <Link2Off className="h-4 w-4" />
         </Button>
       )}
 
