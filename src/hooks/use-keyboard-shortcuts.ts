@@ -7,13 +7,19 @@ interface KeyboardShortcutProps {
   onSave: () => void;
   onToggleFileExplorer: () => void;
   onShowHelp?: () => void;
+  onSwitchToEditorView?: () => void;
+  onSwitchToSplitView?: () => void;
+  onSwitchToPreviewView?: () => void;
 }
 
 export const useKeyboardShortcuts = ({
   onRun,
   onSave,
   onToggleFileExplorer,
-  onShowHelp
+  onShowHelp,
+  onSwitchToEditorView,
+  onSwitchToSplitView,
+  onSwitchToPreviewView
 }: KeyboardShortcutProps) => {
   
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
@@ -48,6 +54,33 @@ export const useKeyboardShortcuts = ({
       return;
     }
     
+    // Ctrl+1 or Cmd+1 to switch to editor view
+    if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+      event.preventDefault();
+      if (onSwitchToEditorView) {
+        onSwitchToEditorView();
+      }
+      return;
+    }
+    
+    // Ctrl+2 or Cmd+2 to switch to split view
+    if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+      event.preventDefault();
+      if (onSwitchToSplitView) {
+        onSwitchToSplitView();
+      }
+      return;
+    }
+    
+    // Ctrl+3 or Cmd+3 to switch to preview view
+    if ((event.ctrlKey || event.metaKey) && event.key === '3') {
+      event.preventDefault();
+      if (onSwitchToPreviewView) {
+        onSwitchToPreviewView();
+      }
+      return;
+    }
+    
     // F1 or Ctrl+/ or Cmd+/ to show help
     if (
       event.key === 'F1' || 
@@ -61,12 +94,12 @@ export const useKeyboardShortcuts = ({
       }
       return;
     }
-  }, [onRun, onSave, onToggleFileExplorer, onShowHelp]);
+  }, [onRun, onSave, onToggleFileExplorer, onShowHelp, onSwitchToEditorView, onSwitchToSplitView, onSwitchToPreviewView]);
   
   const showHelpToast = () => {
     toast({
       title: "Keyboard Shortcuts",
-      description: "Ctrl/Cmd+Enter: Run code | Ctrl/Cmd+S: Save | Ctrl/Cmd+B: Toggle files | F1: Help",
+      description: "Ctrl/Cmd+Enter: Run code | Ctrl/Cmd+S: Save | Ctrl/Cmd+B: Toggle files | F1: Help | Ctrl/Cmd+1: Editor | Ctrl/Cmd+2: Split | Ctrl/Cmd+3: Preview",
       duration: 5000,
     });
   };

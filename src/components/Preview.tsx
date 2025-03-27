@@ -1,7 +1,8 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { runCode, runCodeWithWasm } from '@/utils/editorUtils';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Maximize2 } from 'lucide-react';
+import { RefreshCw, Maximize2, Minimize2, Code, Terminal } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface PreviewProps {
@@ -30,6 +31,8 @@ const Preview: React.FC<PreviewProps> = ({
   const [lastRunContent, setLastRunContent] = useState('');
   const [prevContent, setPrevContent] = useState('');
   const [contentChanged, setContentChanged] = useState(false);
+  const [showConsole, setShowConsole] = useState(false);
+  const [consoleLogs, setConsoleLogs] = useState<{type: string, message: string}[]>([]);
   
   const isNonExecutableLanguage = (lang?: string): boolean => {
     if (!lang) return false;
@@ -41,6 +44,7 @@ const Preview: React.FC<PreviewProps> = ({
     if (!iframe) return;
     
     setContentChanged(false);
+    setConsoleLogs([]);
     
     if (activeLanguage && 
         !['html', 'css', 'js', 'javascript'].includes(activeLanguage.toLowerCase()) && 
@@ -62,6 +66,31 @@ const Preview: React.FC<PreviewProps> = ({
         description: "The preview has been refreshed",
         duration: 1500,
       });
+    }
+    
+    // Setup console log capturing
+    if (iframe.contentWindow) {
+      const originalConsole = iframe.contentWindow.console;
+      
+      iframe.contentWindow.console.log = (...args: any[]) => {
+        originalConsole.log(...args);
+        setConsoleLogs(prev => [...prev, {type: 'log', message: args.map(arg => String(arg)).join(' ')}]);
+      };
+      
+      iframe.contentWindow.console.error = (...args: any[]) => {
+        originalConsole.error(...args);
+        setConsoleLogs(prev => [...prev, {type: 'error', message: args.map(arg => String(arg)).join(' ')}]);
+      };
+      
+      iframe.contentWindow.console.warn = (...args: any[]) => {
+        originalConsole.warn(...args);
+        setConsoleLogs(prev => [...prev, {type: 'warn', message: args.map(arg => String(arg)).join(' ')}]);
+      };
+      
+      iframe.contentWindow.console.info = (...args: any[]) => {
+        originalConsole.info(...args);
+        setConsoleLogs(prev => [...prev, {type: 'info', message: args.map(arg => String(arg)).join(' ')}]);
+      };
     }
   };
   
@@ -95,6 +124,14 @@ const Preview: React.FC<PreviewProps> = ({
       setIsFullscreen(false);
     }
   };
+  
+  const toggleConsole = () => {
+    setShowConsole(!showConsole);
+  };
+  
+  const clearConsole = () => {
+    setConsoleLogs([]);
+  };
 
   return (
     <div className="preview-container h-full w-full overflow-hidden animate-scale-in rounded-lg border border-border neomorphism">
@@ -123,21 +160,63 @@ const Preview: React.FC<PreviewProps> = ({
             variant="ghost" 
             size="icon" 
             className="h-6 w-6" 
+            onClick={toggleConsole}
+          >
+            <Terminal className={`h-3.5 w-3.5 ${showConsole ? 'text-primary' : ''}`} />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6" 
             onClick={toggleFullscreen}
           >
-            <Maximize2 className="h-3.5 w-3.5" />
+            {isFullscreen ? 
+              <Minimize2 className="h-3.5 w-3.5" /> : 
+              <Maximize2 className="h-3.5 w-3.5" />
+            }
           </Button>
         </div>
       </div>
       
-      <div className="iframe-container h-[calc(100%-33px)] w-full bg-white dark:bg-gray-900">
+      <div className={`iframe-container ${showConsole ? 'h-[calc(100%-33px-120px)]' : 'h-[calc(100%-33px)]'} w-full bg-white dark:bg-gray-900`}>
         <iframe
           ref={iframeRef}
           title="Code Preview"
           className="w-full h-full border-none"
-          sandbox="allow-scripts allow-modals allow-same-origin allow-popups"
+          sandbox="allow-scripts allow-modals allow-same-origin allow-popups allow-downloads"
         ></iframe>
       </div>
+      
+      {showConsole && (
+        <div className="console-container h-[120px] w-full border-t border-border overflow-auto bg-background text-foreground">
+          <div className="flex justify-between items-center p-1 bg-muted border-b border-border">
+            <span className="text-xs font-medium">Console</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs h-6 px-2" 
+              onClick={clearConsole}
+            >
+              Clear
+            </Button>
+          </div>
+          <div className="console-logs p-2">
+            {consoleLogs.length === 0 ? (
+              <div className="text-xs text-muted-foreground p-2">Console is empty. Run your code to see output here.</div>
+            ) : (
+              consoleLogs.map((log, index) => (
+                <div key={index} className={`text-xs font-mono mb-1 ${
+                  log.type === 'error' ? 'text-red-500' : 
+                  log.type === 'warn' ? 'text-yellow-500' : 
+                  log.type === 'info' ? 'text-blue-500' : 'text-foreground'
+                }`}>
+                  <span className="opacity-60">{'>>'}</span> {log.message}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
       
       <style jsx global>{`
         .fullscreen-preview {

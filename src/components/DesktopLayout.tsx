@@ -1,12 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import Preview from '@/components/Preview';
 import CodeEditorPanel from '@/components/CodeEditorPanel';
 import { Button } from '@/components/ui/button';
-import { Columns, MonitorPlay, SplitSquareVertical } from 'lucide-react';
+import { 
+  Columns, 
+  MonitorPlay, 
+  SplitSquareVertical, 
+  ChevronLeft, 
+  ChevronRight, 
+  Maximize2, 
+  Minimize2 
+} from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 interface DesktopLayoutProps {
   showFileExplorer: boolean;
@@ -60,10 +70,93 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
   fileContent
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('split');
-
+  const [editorPanelSize, setEditorPanelSize] = useState(50);
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Register keyboard shortcuts for view mode changes
+  useKeyboardShortcuts({
+    onRun: handleRun,
+    onSave: handleSaveAll,
+    onToggleFileExplorer: toggleFileExplorer,
+    onShowHelp: () => {
+      toast({
+        title: "Keyboard Shortcuts",
+        description: "Ctrl+1: Editor view | Ctrl+2: Split view | Ctrl+3: Preview view | Ctrl+Enter: Run | Ctrl+S: Save",
+        duration: 5000,
+      });
+    }
+  });
+  
+  // Handle keyboard events for changing view modes
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if input elements are focused (don't trigger shortcuts)
+      const target = event.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.isContentEditable
+      ) {
+        return;
+      }
+      
+      // Ctrl+1 or Cmd+1 to switch to editor mode
+      if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+        event.preventDefault();
+        setViewMode('editor');
+        return;
+      }
+      
+      // Ctrl+2 or Cmd+2 to switch to split mode
+      if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+        event.preventDefault();
+        setViewMode('split');
+        return;
+      }
+      
+      // Ctrl+3 or Cmd+3 to switch to preview mode
+      if ((event.ctrlKey || event.metaKey) && event.key === '3') {
+        event.preventDefault();
+        setViewMode('preview');
+        return;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+  
+  // Toggle expanded view
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+    
+    toast({
+      title: !isExpanded ? "Expanded View" : "Normal View",
+      description: !isExpanded ? "Workspace expanded to full screen" : "Workspace returned to normal view",
+      duration: 2000,
+    });
+  };
+  
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-end p-1 bg-card border-b border-border">
+    <div className={`flex flex-col h-full transition-all duration-300 ${isExpanded ? 'fixed inset-0 z-50 bg-background' : ''}`}>
+      <div className="flex justify-between p-1 bg-card border-b border-border shadow-sm">
+        <div className="flex items-center">
+          {isExpanded && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleFileExplorer}
+              className="h-7 mr-2"
+            >
+              {showFileExplorer ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <span className="text-xs ml-1">{showFileExplorer ? "Hide Files" : "Show Files"}</span>
+            </Button>
+          )}
+        </div>
+        
         <div className="flex space-x-1">
           <Button 
             variant={viewMode === 'editor' ? "secondary" : "ghost"} 
@@ -94,6 +187,15 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
             <MonitorPlay className="h-4 w-4 mr-1" />
             <span className="text-xs">Preview</span>
           </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleExpanded}
+            className="h-7 px-2 ml-2"
+          >
+            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
       
@@ -122,9 +224,14 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         {/* Code Editor Panel */}
         {(viewMode === 'editor' || viewMode === 'split') && (
           <ResizablePanel 
-            defaultSize={viewMode === 'split' ? 50 : 100} 
+            defaultSize={viewMode === 'split' ? editorPanelSize : 100} 
             minSize={30}
             className={viewMode === 'editor' ? 'flex-grow' : ''}
+            onResize={(size) => {
+              if (viewMode === 'split') {
+                setEditorPanelSize(size);
+              }
+            }}
           >
             <CodeEditorPanel
               activeTab={activeTab}
@@ -147,7 +254,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
         {/* Preview Panel */}
         {(viewMode === 'preview' || viewMode === 'split') && (
           <ResizablePanel 
-            defaultSize={viewMode === 'split' ? 50 : 100} 
+            defaultSize={viewMode === 'split' ? 100 - editorPanelSize : 100} 
             minSize={30}
             className={viewMode === 'preview' ? 'flex-grow' : ''}
           >
@@ -160,7 +267,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                 onRunComplete={onRunComplete}
                 activeLanguage={selectedFile?.language || activeTab}
                 activeContent={selectedFile?.content || getEditorContent()}
-                autoRefresh={true} // New prop for auto-refresh
+                autoRefresh={true}
               />
             </div>
           </ResizablePanel>

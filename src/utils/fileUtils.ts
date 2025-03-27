@@ -1,4 +1,3 @@
-
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 
 // Generate a unique ID
@@ -435,4 +434,39 @@ export const getLanguageFromExtension = (filename: string): string => {
     case 'sql': return 'sql';
     default: return 'text';
   }
+};
+
+// Move a file or folder in the tree
+export const moveFileInTree = (files: FileType[], fileId: string, targetFolderId: string | null): FileType[] => {
+  // First, find the file to move
+  const fileToMove = findFileById(files, fileId);
+  if (!fileToMove) return files;
+  
+  // Remove the file from its current location
+  let updatedFiles = deleteFileFromTree(files, fileId);
+  
+  // If target is null, add to root level
+  if (targetFolderId === null) {
+    return [...updatedFiles, fileToMove];
+  }
+  
+  // Add the file to the target folder
+  return updatedFiles.map(file => {
+    if (file.id === targetFolderId && file.type === 'folder') {
+      return {
+        ...file,
+        children: [...(file.children || []), fileToMove],
+        dateModified: new Date()
+      };
+    }
+    
+    if (file.type === 'folder' && file.children) {
+      return {
+        ...file,
+        children: moveFileInTree(file.children, fileId, targetFolderId)
+      };
+    }
+    
+    return file;
+  });
 };

@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import CodeEditor from '@/components/CodeEditor';
 import Preview from '@/components/Preview';
-import { FolderOpen, Play, Undo2, Save, Menu, X } from 'lucide-react';
+import { FolderOpen, Play, Undo2, Save, Menu, X, FileCode, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface MobileLayoutProps {
@@ -18,6 +17,7 @@ interface MobileLayoutProps {
   handleFileCreate: (file: FileType, parentId?: string) => void;
   handleFileDelete: (fileId: string) => void;
   handleFileRename: (fileId: string, newName: string) => void;
+  handleFileMove?: (fileId: string, targetFolderId: string | null) => void;
   selectedFile: FileType | null;
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -42,6 +42,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   handleFileCreate,
   handleFileDelete,
   handleFileRename,
+  handleFileMove,
   selectedFile,
   activeTab,
   setActiveTab,
@@ -114,6 +115,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
                 onFileCreate={handleFileCreate}
                 onFileDelete={handleFileDelete}
                 onFileRename={handleFileRename}
+                onFileMove={handleFileMove}
                 selectedFileId={selectedFile?.id || null}
               />
             </div>
@@ -158,7 +160,10 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           onClick={toggleTab}
           className="h-8"
         >
-          {currentTab === 'editor' ? 'المعاينة' : 'المحرر'}
+          {currentTab === 'editor' ? 
+            <><Eye className="h-4 w-4 mr-1" /> المعاينة</> : 
+            <><FileCode className="h-4 w-4 mr-1" /> المحرر</>
+          }
         </Button>
       </div>
       

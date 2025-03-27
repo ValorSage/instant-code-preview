@@ -10,7 +10,8 @@ import {
   deleteFileFromTree,
   renameFile,
   findFileById,
-  saveFilesToLocalStorage
+  saveFilesToLocalStorage,
+  moveFileInTree
 } from '@/utils/fileUtils';
 import { toast } from '@/hooks/use-toast';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
@@ -26,8 +27,8 @@ const Index = () => {
     if (!hasSeenIntro) {
       setTimeout(() => {
         toast({
-          title: "Welcome to Ako.js Editor",
-          description: "Try the new split view mode and enhanced file management features!",
+          title: "مرحباً بك في محرر Ako.js",
+          description: "جرب وضع العرض المقسم والميزات المحسنة لإدارة الملفات!",
           duration: 5000,
         });
         
@@ -48,8 +49,8 @@ const Index = () => {
     }
     
     toast({
-      title: `${file.type === 'file' ? 'File' : 'Folder'} created`,
-      description: `${file.name} has been created successfully.`,
+      title: `${file.type === 'file' ? 'تم إنشاء الملف' : 'تم إنشاء المجلد'}`,
+      description: `تم إنشاء ${file.name} بنجاح.`,
       duration: 2000,
     });
   };
@@ -66,8 +67,8 @@ const Index = () => {
     saveFilesToLocalStorage(updatedFiles);
     
     toast({
-      title: "Deleted",
-      description: "The file or folder has been deleted.",
+      title: "تم الحذف",
+      description: "تم حذف الملف أو المجلد.",
       duration: 2000,
     });
   };
@@ -87,8 +88,21 @@ const Index = () => {
     }
     
     toast({
-      title: "Renamed",
-      description: `Renamed to ${newName} successfully.`,
+      title: "تمت إعادة التسمية",
+      description: `تمت إعادة التسمية إلى ${newName} بنجاح.`,
+      duration: 2000,
+    });
+  };
+  
+  // Handle file move (for drag and drop)
+  const handleFileMove = (fileId: string, targetFolderId: string | null) => {
+    const updatedFiles = moveFileInTree(editor.files, fileId, targetFolderId);
+    editor.setFiles(updatedFiles);
+    saveFilesToLocalStorage(updatedFiles);
+    
+    toast({
+      title: "تم نقل الملف",
+      description: "تم نقل الملف بنجاح.",
       duration: 2000,
     });
   };
@@ -116,6 +130,7 @@ const Index = () => {
             handleFileCreate={handleFileCreate}
             handleFileDelete={handleFileDelete}
             handleFileRename={handleFileRename}
+            handleFileMove={handleFileMove}
             selectedFile={editor.selectedFile}
             activeTab={editor.activeTab}
             setActiveTab={editor.setActiveTab}
