@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Folder, File, Plus, PlusCircle, FolderPlus, FileCode, FilePlus, Trash2, Edit, ChevronRight, ChevronDown, Move } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface FileExplorerProps {
   onFileCreate: (file: FileType, parentId?: string) => void;
   onFileDelete: (fileId: string) => void;
   onFileRename: (fileId: string, newName: string) => void;
+  onFileMove?: (fileId: string, targetFolderId: string | null) => void;
   selectedFileId: string | null;
 }
 

@@ -70,24 +70,26 @@ const Preview: React.FC<PreviewProps> = ({
     
     // Setup console log capturing
     if (iframe.contentWindow) {
-      const originalConsole = iframe.contentWindow.console;
+      // Use type assertion to handle Window's console property
+      const contentWindow = iframe.contentWindow as Window & typeof globalThis;
+      const originalConsole = contentWindow.console;
       
-      iframe.contentWindow.console.log = (...args: any[]) => {
+      contentWindow.console.log = (...args: any[]) => {
         originalConsole.log(...args);
         setConsoleLogs(prev => [...prev, {type: 'log', message: args.map(arg => String(arg)).join(' ')}]);
       };
       
-      iframe.contentWindow.console.error = (...args: any[]) => {
+      contentWindow.console.error = (...args: any[]) => {
         originalConsole.error(...args);
         setConsoleLogs(prev => [...prev, {type: 'error', message: args.map(arg => String(arg)).join(' ')}]);
       };
       
-      iframe.contentWindow.console.warn = (...args: any[]) => {
+      contentWindow.console.warn = (...args: any[]) => {
         originalConsole.warn(...args);
         setConsoleLogs(prev => [...prev, {type: 'warn', message: args.map(arg => String(arg)).join(' ')}]);
       };
       
-      iframe.contentWindow.console.info = (...args: any[]) => {
+      contentWindow.console.info = (...args: any[]) => {
         originalConsole.info(...args);
         setConsoleLogs(prev => [...prev, {type: 'info', message: args.map(arg => String(arg)).join(' ')}]);
       };
@@ -218,7 +220,8 @@ const Preview: React.FC<PreviewProps> = ({
         </div>
       )}
       
-      <style jsx global>{`
+      <style>
+        {`
         .fullscreen-preview {
           position: fixed !important;
           top: 0;
@@ -228,7 +231,8 @@ const Preview: React.FC<PreviewProps> = ({
           z-index: 9999;
           border-radius: 0 !important;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
