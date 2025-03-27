@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
 import MobileLayout from '@/components/MobileLayout';
 import DesktopLayout from '@/components/DesktopLayout';
+import { Button } from '@/components/ui/button'; // Added missing import
 import { 
   addFileToTree,
   deleteFileFromTree,

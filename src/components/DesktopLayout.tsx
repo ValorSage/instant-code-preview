@@ -5,6 +5,7 @@ import FileExplorer from '@/components/FileExplorer/FileExplorer';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import Preview from '@/components/Preview';
 import CodeEditorPanel from '@/components/CodeEditorPanel';
+import CodeEditor from '@/components/CodeEditor'; // Added missing import
 import { Button } from '@/components/ui/button';
 import { 
   Columns, 
