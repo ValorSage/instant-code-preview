@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
-import { Code, Save, Laptop, Moon, Sun, Globe, Files, Paintbrush } from 'lucide-react';
+import { Code, Save, Globe, Files, Paintbrush } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import DirectionToggle from '@/components/DirectionToggle';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 const SettingsPage = () => {
   const [direction, setDirection] = useState<'ltr' | 'rtl'>(document.documentElement.dir as 'ltr' | 'rtl');
@@ -20,6 +20,9 @@ const SettingsPage = () => {
   const [tabSize, setTabSize] = useState('2');
   const [wordWrap, setWordWrap] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.documentElement.classList.contains('dark')
+  );
   
   const handleSaveSettings = () => {
     // محاكاة حفظ الإعدادات
@@ -32,6 +35,10 @@ const SettingsPage = () => {
   
   const handleDirectionChange = (newDirection: 'ltr' | 'rtl') => {
     setDirection(newDirection);
+  };
+  
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
   };
   
   const fontSizes = ['12', '14', '16', '18', '20', '24'];
@@ -50,8 +57,8 @@ const SettingsPage = () => {
         css="" 
         js=""
         script=""
-        isDarkMode={theme === 'dark'}
-        toggleDarkMode={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
         onSave={() => {}}
       />
       
@@ -170,39 +177,12 @@ const SettingsPage = () => {
                 <CardDescription>تخصيص مظهر وسمة المحرر</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      variant={theme === 'light' ? "secondary" : "outline"} 
-                      className="h-20 w-20 rounded-md mb-2 flex items-center justify-center"
-                      onClick={() => setTheme('light')}
-                    >
-                      <Sun className="h-6 w-6" />
-                    </Button>
-                    <span className="text-sm">فاتح</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      variant={theme === 'dark' ? "secondary" : "outline"} 
-                      className="h-20 w-20 rounded-md mb-2 flex items-center justify-center"
-                      onClick={() => setTheme('dark')}
-                    >
-                      <Moon className="h-6 w-6" />
-                    </Button>
-                    <span className="text-sm">داكن</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      variant={theme === 'system' ? "secondary" : "outline"} 
-                      className="h-20 w-20 rounded-md mb-2 flex items-center justify-center"
-                      onClick={() => setTheme('system')}
-                    >
-                      <Laptop className="h-6 w-6" />
-                    </Button>
-                    <span className="text-sm">تلقائي</span>
-                  </div>
+                <div className="space-y-4">
+                  <Label>السمة</Label>
+                  <ThemeSwitcher 
+                    isDarkMode={isDarkMode} 
+                    onToggle={toggleDarkMode} 
+                  />
                 </div>
                 
                 <div className="space-y-4">
@@ -306,7 +286,7 @@ const SettingsPage = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="realtime">تعاون في الوقت الحقيقي</Label>
+                      <Label htmlFor="realtime">تعاو�� في الوقت الحقيقي</Label>
                       <Switch id="realtime" defaultChecked />
                     </div>
                     

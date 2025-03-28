@@ -1,13 +1,12 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check, FolderPlus, Link2Off } from 'lucide-react';
-import { useProjects, Project } from '@/contexts/ProjectContext';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Link2Off } from 'lucide-react';
+import { useProjects } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
+import ProjectCommand from './project/ProjectCommand';
+import CreateProjectDialog from './project/CreateProjectDialog';
 
 interface ProjectSelectorProps {
   screenId: string;
@@ -26,8 +25,6 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({ screenId }) => {
   
   const [open, setOpen] = useState(false);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [newProjectDescription, setNewProjectDescription] = useState('');
 
   const currentProjectForScreen = projects.find(
     (p) => p.id === linkedProjects[screenId]
@@ -45,35 +42,8 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({ screenId }) => {
     });
   };
 
-  const handleCreateProject = () => {
-    if (!newProjectName.trim()) {
-      toast({
-        title: "خطأ",
-        description: "يرجى إدخال اسم المشروع",
-        variant: "destructive",
-        duration: 2000,
-      });
-      return;
-    }
-
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: newProjectName.trim(),
-      description: newProjectDescription.trim() || undefined,
-      lastModified: new Date(),
-      files: [], // Initial empty files
-    };
-
+  const handleCreateProject = (newProject) => {
     addProject(newProject);
-    setNewProjectName('');
-    setNewProjectDescription('');
-    setNewProjectOpen(false);
-    
-    toast({
-      title: "تم إنشاء المشروع",
-      description: `تم إنشاء مشروع جديد: ${newProjectName}`,
-      duration: 2000,
-    });
   };
 
   const handleUnlinkProject = () => {
@@ -103,43 +73,15 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({ screenId }) => {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="p-0" align="start" sideOffset={5}>
-          <Command>
-            <CommandInput placeholder="ابحث عن مشروع..." className="h-9" />
-            <CommandList>
-              <CommandEmpty>لا توجد مشاريع مطابقة.</CommandEmpty>
-              <CommandGroup heading="المشاريع المتاحة">
-                {projects.map((project) => (
-                  <CommandItem
-                    key={project.id}
-                    onSelect={() => handleSelectProject(project.id)}
-                    className="flex items-center"
-                  >
-                    <Check
-                      className={`mr-2 h-4 w-4 ${
-                        project.id === linkedProjects[screenId]
-                          ? "opacity-100"
-                          : "opacity-0"
-                      }`}
-                    />
-                    <span className="flex-1 truncate">{project.name}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandGroup>
-                <DialogTrigger asChild>
-                  <CommandItem
-                    onSelect={() => {
-                      setOpen(false);
-                      setNewProjectOpen(true);
-                    }}
-                  >
-                    <FolderPlus className="mr-2 h-4 w-4" />
-                    <span>إنشاء مشروع جديد</span>
-                  </CommandItem>
-                </DialogTrigger>
-              </CommandGroup>
-            </CommandList>
-          </Command>
+          <ProjectCommand 
+            projects={projects}
+            selectedProjectId={linkedProjects[screenId]}
+            onSelectProject={handleSelectProject}
+            onCreateNewProject={() => {
+              setOpen(false);
+              setNewProjectOpen(true);
+            }}
+          />
         </PopoverContent>
       </Popover>
 
@@ -154,44 +96,11 @@ const ProjectSelector: React.FC<ProjectSelectorProps> = ({ screenId }) => {
         </Button>
       )}
 
-      <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>إنشاء مشروع جديد</DialogTitle>
-            <DialogDescription>
-              أدخل تفاصيل المشروع الجديد الذي تريد إنشاءه.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">اسم المشروع</Label>
-              <Input
-                id="name"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="أدخل اسم المشروع"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">وصف المشروع (اختياري)</Label>
-              <Input
-                id="description"
-                value={newProjectDescription}
-                onChange={(e) => setNewProjectDescription(e.target.value)}
-                placeholder="أدخل وصف المشروع"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setNewProjectOpen(false)}>
-              إلغاء
-            </Button>
-            <Button type="button" onClick={handleCreateProject}>
-              إنشاء
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateProjectDialog 
+        isOpen={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+        onCreateProject={handleCreateProject}
+      />
     </div>
   );
 };
