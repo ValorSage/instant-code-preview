@@ -1,66 +1,75 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Save, Share2, LogIn, User } from 'lucide-react';
+import ThemeSwitcher from '@/components/header/ThemeSwitcher';
+import { Save, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import PublishButton from '@/components/PublishButton';
 
 interface HeaderActionsProps {
-  isSaving: boolean;
-  onSave: () => void;
-  onShare: () => void;
-  onLogin: () => void;
-  onProfile: () => void;
+  onSave?: () => void;
+  showSaveButton?: boolean;
+  isDarkMode?: boolean;
+  toggleDarkMode?: () => void;
 }
 
 const HeaderActions: React.FC<HeaderActionsProps> = ({
-  isSaving,
   onSave,
-  onShare,
-  onLogin,
-  onProfile
+  showSaveButton = true,
+  isDarkMode,
+  toggleDarkMode
 }) => {
+  const { user, signOut } = useAuth();
+  
   return (
-    <>
-      <Button 
+    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+      {/* Publish Button */}
+      <PublishButton 
         variant="outline" 
-        size="sm" 
-        className="transition-all hover:bg-secondary"
-        onClick={onSave}
-        disabled={isSaving}
-      >
-        {isSaving ? 'Saving...' : 'Save'}
-        <Save className="w-4 h-4 ml-2" />
+        size="sm"
+        className="h-9"
+      />
+      
+      {/* Save Button - only show if onSave prop is provided */}
+      {showSaveButton && onSave && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSave}
+          className="h-9"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          <span>حفظ</span>
+        </Button>
+      )}
+      
+      {/* Theme Switcher */}
+      {isDarkMode !== undefined && toggleDarkMode && (
+        <ThemeSwitcher isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+      )}
+      
+      {/* Profile Button */}
+      <Button variant="ghost" size="sm" asChild className="h-9">
+        <Link to="/profile">
+          <User className="h-4 w-4 mr-2" />
+          <span>الملف الشخصي</span>
+        </Link>
       </Button>
       
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="transition-all hover:bg-secondary"
-        onClick={onShare}
-      >
-        Share
-        <Share2 className="w-4 h-4 ml-2" />
-      </Button>
-
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="transition-all hover:bg-secondary hidden md:flex"
-        onClick={onLogin}
-      >
-        <LogIn className="w-4 h-4 mr-1" />
-        Login
-      </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="transition-all hover:bg-secondary hidden md:flex"
-        onClick={onProfile}
-      >
-        <User className="w-4 h-4 mr-1" />
-        Profile
-      </Button>
-    </>
+      {/* Logout Button */}
+      {user && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={signOut}
+          className="h-9"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          <span>تسجيل الخروج</span>
+        </Button>
+      )}
+    </div>
   );
 };
 

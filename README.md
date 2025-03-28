@@ -1,69 +1,53 @@
-# Welcome to your Lovable project
 
-## Project info
+# Ako.js - منصة تطوير متكاملة عبر الإنترنت
 
-**URL**: https://lovable.dev/projects/fa8522e5-2fc7-4663-994b-b13afcb81806
+Ako.js هي منصة تطوير متكاملة عبر الإنترنت تتيح للمستخدمين العمل على مشاريع برمجية في بيئات متعددة. الهدف هو توفير بيئة شاملة للمطورين مع مجموعة متكاملة من الأدوات.
 
-## How can I edit this code?
+## الميزات الرئيسية
 
-There are several ways of editing your application.
+- **محرر أكواد متقدم**: دعم لغات برمجة متعددة مع تلوين بناء الجملة والاقتراحات التلقائية
+- **معاينة مباشرة**: عرض التغييرات على الكود في الوقت الفعلي
+- **إدارة المشاريع**: إنشاء وإدارة مشاريع متعددة
+- **استيراد وتصدير**: استيراد وتصدير المشاريع والملفات
+- **مشاركة المشاريع**: مشاركة المشاريع مع الآخرين من خلال روابط
+- **التعاون في الوقت الفعلي**: العمل مع فريق على نفس المشروع في الوقت الفعلي
+- **بيئات محاكاة**: تشغيل الأكواد في بيئات محاكاة مخصصة لمختلف اللغات
+- **دعم لغات متعددة**: JavaScript, HTML, CSS, Python, C++, وغيرها
+- **تكامل مع خدمات خارجية**: دعم GitHub, Google Drive, وخدمات أخرى
 
-**Use Lovable**
+## هيكل المشروع
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/fa8522e5-2fc7-4663-994b-b13afcb81806) and start prompting.
+- **الصفحة الرئيسية**: محرر الأكواد الرئيسي مع معاينة مباشرة
+- **صفحة المشاريع**: إدارة جميع المشاريع والملفات
+- **صفحة المحاكاة**: بيئات محاكاة مختلفة لتشغيل الأكواد
+- **صفحة الإعدادات**: تخصيص إعدادات المنصة
+- **صفحة الملف الشخصي**: إدارة حساب المستخدم
+- **صفحة المصادقة**: تسجيل الدخول والتسجيل
 
-Changes made via Lovable will be committed automatically to this repo.
+## المكونات الرئيسية
 
-**Use your preferred IDE**
+- **محرر الأكواد**: واجهة تحرير متقدمة للكود
+- **مستكشف الملفات**: إدارة هيكل الملفات
+- **المعاينة المباشرة**: عرض مباشر لنتيجة الكود
+- **أدوات التحكم**: أزرار للتشغيل وإعادة الضبط والحفظ
+- **التعاون في الوقت الفعلي**: مشاركة التغييرات مع المتعاونين
+- **لوحة التحكم**: إدارة المشاريع والإعدادات
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## التقنيات المستخدمة
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend**: React, TypeScript, Tailwind CSS, Shadcn UI
+- **Backend**: Supabase (قاعدة بيانات ومصادقة)
+- **تخزين**: Supabase Storage
+- **مصادقة**: Supabase Auth
 
-Follow these steps:
+## البدء باستخدام المنصة
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. قم بإنشاء حساب أو تسجيل الدخول
+2. أنشئ مشروعاً جديداً أو استورد مشروعاً موجوداً
+3. استخدم محرر الأكواد لإنشاء وتعديل ملفات المشروع
+4. قم بتشغيل الكود باستخدام زر التشغيل لمعاينة النتائج
+5. احفظ المشروع واستخدم أدوات المشاركة عند الحاجة
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## إدارة المشاريع
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/fa8522e5-2fc7-4663-994b-b13afcb81806) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+يمكن للمستخدمين إنشاء مشاريع متعددة، وتنظيمها، وتحريرها، ومشاركتها مع الآخرين. كل مشروع يمكن أن يحتوي على ملفات متعددة منظمة في هيكل مجلدات.

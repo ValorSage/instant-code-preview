@@ -1,39 +1,25 @@
+
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
 import MobileLayout from '@/components/MobileLayout';
 import DesktopLayout from '@/components/DesktopLayout';
-import { Button } from '@/components/ui/button';
-import { 
-  addFileToTree,
-  deleteFileFromTree,
-  renameFile,
-  findFileById,
-  saveFilesToLocalStorage,
-  moveFileInTree
-} from '@/utils/fileUtils';
 import { toast } from '@/hooks/use-toast';
-import { FileType } from '@/components/FileExplorer/FileExplorer';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Folders, Search, Users, Settings, Keyboard, FileBadge, Beaker, BookOpen, Globe } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
-import CollaborationPanel from '@/components/CollaborationPanel';
-import AdvancedSettings from '@/components/AdvancedSettings';
 import ProjectManagementDialog from '@/components/ProjectManagementDialog';
-import RealTimeCollaboration from '@/components/RealTimeCollaboration';
-import LanguageSelector from '@/components/LanguageSelector';
-import DirectionToggle from '@/components/DirectionToggle';
-import { useProjects } from '@/contexts/ProjectContext';
+import RealTimeCollaboration from '@/components/collaboration/RealTimeCollaboration';
+import CollaborationPanel from '@/components/collaboration/CollaborationPanel';
 
-const isRtl = document.documentElement.dir === 'rtl';
+// Import the new refactored components
+import IndexHeader from '@/components/index/IndexHeader';
+import ToolbarActions from '@/components/index/ToolbarActions';
+import IndexFooter from '@/components/index/IndexFooter';
+import { FileType } from '@/components/FileExplorer/FileExplorer';
 
 const Index = () => {
   const isMobile = useIsMobile();
   const editor = useEditor();
-  const { currentProject } = useProjects();
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [collaborationPanelOpen, setCollaborationPanelOpen] = useState(false);
@@ -61,9 +47,9 @@ const Index = () => {
   }, []);
   
   const handleFileCreate = (file: FileType, parentId?: string) => {
-    const updatedFiles = addFileToTree(editor.files, file, parentId);
+    const updatedFiles = editor.addFileToTree(editor.files, file, parentId);
     editor.setFiles(updatedFiles);
-    saveFilesToLocalStorage(updatedFiles);
+    editor.saveFilesToLocalStorage(updatedFiles);
     
     if (file.type === 'file') {
       editor.setSelectedFile(file);
@@ -81,9 +67,9 @@ const Index = () => {
       editor.setSelectedFile(null);
     }
     
-    const updatedFiles = deleteFileFromTree(editor.files, fileId);
+    const updatedFiles = editor.deleteFileFromTree(editor.files, fileId);
     editor.setFiles(updatedFiles);
-    saveFilesToLocalStorage(updatedFiles);
+    editor.saveFilesToLocalStorage(updatedFiles);
     
     toast({
       title: "تم الحذف",
@@ -93,12 +79,12 @@ const Index = () => {
   };
 
   const handleFileRename = (fileId: string, newName: string) => {
-    const updatedFiles = renameFile(editor.files, fileId, newName);
+    const updatedFiles = editor.renameFile(editor.files, fileId, newName);
     editor.setFiles(updatedFiles);
-    saveFilesToLocalStorage(updatedFiles);
+    editor.saveFilesToLocalStorage(updatedFiles);
     
     if (editor.selectedFile && editor.selectedFile.id === fileId) {
-      const updatedFile = findFileById(updatedFiles, fileId);
+      const updatedFile = editor.findFileById(updatedFiles, fileId);
       if (updatedFile) {
         editor.setSelectedFile(updatedFile);
       }
@@ -112,9 +98,9 @@ const Index = () => {
   };
   
   const handleFileMove = (fileId: string, targetFolderId: string | null) => {
-    const updatedFiles = moveFileInTree(editor.files, fileId, targetFolderId);
+    const updatedFiles = editor.moveFileInTree(editor.files, fileId, targetFolderId);
     editor.setFiles(updatedFiles);
-    saveFilesToLocalStorage(updatedFiles);
+    editor.saveFilesToLocalStorage(updatedFiles);
     
     toast({
       title: "تم نقل الملف",
@@ -147,10 +133,6 @@ const Index = () => {
 
   const handleSearchDialogOpen = () => {
     setSearchDialogOpen(true);
-  };
-
-  const handleSettingsDialogOpen = () => {
-    setSettingsDialogOpen(true);
   };
 
   const handleKeyboardShortcutsOpen = () => {
@@ -194,127 +176,26 @@ const Index = () => {
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
         <div className="flex items-center justify-between px-2">
-          <div className="flex items-center space-x-2 rtl:space-x-reverse">
-            {currentProject ? (
-              <Badge variant="outline" className="text-xs px-3 py-1 h-7">
-                {currentProject.name}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs px-3 py-1 h-7 bg-muted text-muted-foreground">
-                لا يوجد مشروع
-              </Badge>
-            )}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleProjectManagementOpen}
-              className="h-7 gap-1 text-xs"
-            >
-              <Folders className="h-3.5 w-3.5" />
-              <span>إدارة المشاريع</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              className="h-7 gap-1 text-xs"
-            >
-              <Link to="/projects">
-                <BookOpen className="h-3.5 w-3.5" />
-                <span>كل المشاريع</span>
-              </Link>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              className="h-7 gap-1 text-xs"
-            >
-              <Link to="/simulation">
-                <Beaker className="h-3.5 w-3.5" />
-                <span>بيئة المحاكاة</span>
-              </Link>
-            </Button>
-          </div>
+          <IndexHeader 
+            handleProjectManagementOpen={handleProjectManagementOpen} 
+          />
           
-          <div className="flex items-center gap-2">
-            <DirectionToggle 
-              direction={direction}
-              onChange={handleDirectionChange}
-            />
-            
-            <LanguageSelector 
-              selectedLanguage={selectedLanguage}
-              onLanguageSelect={handleLanguageChange}
-            />
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={handleSearchDialogOpen} className="h-8 w-8 p-1">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>بحث في الملفات (Ctrl+Shift+F)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant={showRealTimePanel ? "secondary" : "ghost"} 
-                    size="sm" 
-                    onClick={toggleRealTimePanel} 
-                    className="h-8 w-8 p-1"
-                  >
-                    <Users className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>التعاون في الوقت الحقيقي</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-1">
-                    <Link to="/settings">
-                      <Settings className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>إعدادات متقدمة</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={handleKeyboardShortcutsOpen} className="h-8 w-8 p-1">
-                    <Keyboard className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>اختصارات لوحة المفاتيح</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <ToolbarActions
+            direction={direction}
+            onDirectionChange={handleDirectionChange}
+            selectedLanguage={selectedLanguage}
+            onLanguageSelect={handleLanguageChange}
+            onSearchClick={handleSearchDialogOpen}
+            onRealTimeClick={toggleRealTimePanel}
+            onKeyboardShortcutsClick={handleKeyboardShortcutsOpen}
+            showRealTimePanel={showRealTimePanel}
+          />
         </div>
         
         <div className="flex flex-1 gap-4">
           {!isMobile && showRealTimePanel && (
             <div className="w-80 flex-shrink-0">
-              <RealTimeCollaboration projectId={currentProject?.id} />
+              <RealTimeCollaboration projectId={editor.currentProject?.id} />
             </div>
           )}
           
@@ -375,14 +256,7 @@ const Index = () => {
         </div>
       </main>
       
-      <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
-        <p>Ako.js - منصة تحرير الكود المباشر بتجربة مستخدم سلسة</p>
-        <div className="flex items-center justify-center mt-1 space-x-2 rtl:space-x-reverse">
-          <Badge variant="outline" className="text-xs h-5">v1.0</Badge>
-          <Badge variant="outline" className="text-xs h-5">Arabic UI</Badge>
-          <Badge variant="outline" className="text-xs h-5">Multi-language</Badge>
-        </div>
-      </footer>
+      <IndexFooter />
       
       <SearchDialog 
         isOpen={searchDialogOpen}
@@ -395,15 +269,6 @@ const Index = () => {
       <CollaborationPanel
         isOpen={collaborationPanelOpen}
         onClose={() => setCollaborationPanelOpen(false)}
-      />
-      
-      <AdvancedSettings
-        isOpen={settingsDialogOpen}
-        onClose={() => setSettingsDialogOpen(false)}
-        autoSaveEnabled={editor.autoSaveEnabled}
-        onToggleAutoSave={editor.toggleAutoSave}
-        isDarkMode={editor.isDarkMode}
-        onToggleDarkMode={editor.toggleDarkMode}
       />
       
       <ProjectManagementDialog
