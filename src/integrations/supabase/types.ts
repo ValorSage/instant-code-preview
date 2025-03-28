@@ -9,6 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborators_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      execution_logs: {
+        Row: {
+          code: string
+          created_at: string
+          execution_time: number | null
+          id: string
+          language: string
+          output: string | null
+          project_id: string | null
+          simulator_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          execution_time?: number | null
+          id?: string
+          language: string
+          output?: string | null
+          project_id?: string | null
+          simulator_id?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          execution_time?: number | null
+          id?: string
+          language?: string
+          output?: string | null
+          project_id?: string | null
+          simulator_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "execution_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "execution_logs_simulator_id_fkey"
+            columns: ["simulator_id"]
+            isOneToOne: false
+            referencedRelation: "simulators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message: {
         Row: {
           created_at: string
@@ -24,6 +110,150 @@ export type Database = {
           created_at?: string
           id?: number
           message?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      project_files: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          language: string
+          name: string
+          parent_id: string | null
+          project_id: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          language: string
+          name: string
+          parent_id?: string | null
+          project_id: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          language?: string
+          name?: string
+          parent_id?: string | null
+          project_id?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "project_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          css: string | null
+          description: string | null
+          html: string | null
+          id: string
+          is_public: boolean | null
+          js: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          css?: string | null
+          description?: string | null
+          html?: string | null
+          id?: string
+          is_public?: boolean | null
+          js?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          css?: string | null
+          description?: string | null
+          html?: string | null
+          id?: string
+          is_public?: boolean | null
+          js?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      simulators: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          language: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          language: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string
+          name?: string
+          type?: string
         }
         Relationships: []
       }
