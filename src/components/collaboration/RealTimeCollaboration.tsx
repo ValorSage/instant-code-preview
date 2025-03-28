@@ -1,127 +1,65 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useProjects } from '@/contexts/ProjectContext';
-import CollaborationHeader from './CollaborationHeader';
-import CollaboratorsList from './CollaboratorsList';
-import ActivityLog from './ActivityLog';
-import InviteDialog from './InviteDialog';
-import { useAuth } from '@/contexts/AuthContext';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import CollaboratorItem from './CollaboratorItem';
+import ActivityFeed from './ActivityFeed';
+import { useRealTimeData } from './useRealTimeData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface RealTimeCollaborationProps {
   projectId?: string;
 }
 
 const RealTimeCollaboration: React.FC<RealTimeCollaborationProps> = ({ projectId }) => {
-  const { currentProject } = useProjects();
-  const { user } = useAuth();
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const { collaborators, activities, loading } = useRealTimeData(projectId);
   
-  // Mock data for demonstration
-  const [collaborators, setCollaborators] = useState([
-    {
-      id: '1',
-      name: 'علي محمد',
-      avatar: '',
-      status: 'online',
-      role: 'owner',
-      lastActive: 'الآن',
-    },
-    {
-      id: '2',
-      name: 'سارة أحمد',
-      avatar: '',
-      status: 'online',
-      role: 'editor',
-      lastActive: 'قبل 5 دقائق',
-    },
-    {
-      id: '3',
-      name: 'محمد علي',
-      avatar: '',
-      status: 'away',
-      role: 'editor',
-      lastActive: 'قبل 15 دقيقة',
-    },
-  ] as any[]);
-  
-  const [activities, setActivities] = useState([
-    {
-      id: '1',
-      username: 'علي محمد',
-      action: 'أنشأ ملف جديد',
-      timestamp: 'قبل 2 دقيقة',
-      fileId: '123',
-      fileName: 'index.html',
-    },
-    {
-      id: '2',
-      username: 'سارة أحمد',
-      action: 'عدل الملف',
-      timestamp: 'قبل 5 دقائق',
-      fileId: '124',
-      fileName: 'style.css',
-    },
-    {
-      id: '3',
-      username: 'محمد علي',
-      action: 'حذف ملف',
-      timestamp: 'قبل 10 دقائق',
-      fileId: '125',
-      fileName: 'old.js',
-    },
-  ] as any[]);
-  
-  // Simulate fetching collaborators and activities when project changes
-  useEffect(() => {
-    if (projectId) {
-      // Here you would fetch real data from your Supabase database
-      console.log('Fetching collaborators and activities for project:', projectId);
-      
-      // For demo purposes, we're just using the mock data
-      // In a real implementation, you would fetch the data from Supabase
-    }
-  }, [projectId]);
-  
-  const handleInviteClick = () => {
-    setInviteDialogOpen(true);
-  };
-  
-  const handleInviteClose = () => {
-    setInviteDialogOpen(false);
-  };
-  
+  if (loading) {
+    return (
+      <Card className="h-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">التعاون المباشر</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-6 w-3/4 mt-4" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="h-full overflow-hidden">
-      <div className="p-4 min-h-0 flex flex-col h-full">
-        <CollaborationHeader
-          projectId={projectId}
-          projectName={currentProject?.name}
-          onInviteClick={handleInviteClick}
-        />
-        
-        <Separator className="my-4" />
-        
-        <ScrollArea className="flex-grow">
-          <div className="space-y-6 pr-3">
-            <CollaboratorsList 
-              collaborators={collaborators} 
-              currentUserId={user?.id || '1'} 
-            />
-            
-            <ActivityLog activities={activities} />
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">التعاون المباشر</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Tabs defaultValue="collaborators" className="h-full">
+          <div className="px-4 pt-0 pb-2">
+            <TabsList className="w-full">
+              <TabsTrigger value="collaborators" className="flex-1">المتعاونون</TabsTrigger>
+              <TabsTrigger value="activity" className="flex-1">النشاط</TabsTrigger>
+            </TabsList>
           </div>
-        </ScrollArea>
-      </div>
-      
-      <InviteDialog 
-        isOpen={inviteDialogOpen} 
-        onClose={handleInviteClose} 
-        projectId={projectId}
-        projectName={currentProject?.name}
-      />
+          
+          <TabsContent value="collaborators" className="p-4 pt-0 h-[calc(100%-48px)]">
+            <div className="space-y-1">
+              {collaborators.map((collaborator) => (
+                <CollaboratorItem key={collaborator.id} collaborator={collaborator} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="activity" className="p-4 pt-0 h-[calc(100%-48px)]">
+            <ActivityFeed activities={activities} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
     </Card>
   );
 };

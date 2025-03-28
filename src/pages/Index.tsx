@@ -3,19 +3,17 @@ import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
-import MobileLayout from '@/components/MobileLayout';
-import DesktopLayout from '@/components/DesktopLayout';
 import { toast } from '@/hooks/use-toast';
 import SearchDialog from '@/components/SearchDialog';
 import ProjectManagementDialog from '@/components/ProjectManagementDialog';
 import RealTimeCollaboration from '@/components/collaboration/RealTimeCollaboration';
 import CollaborationPanel from '@/components/collaboration/CollaborationPanel';
-
-// Import the new refactored components
 import IndexHeader from '@/components/index/IndexHeader';
 import ToolbarActions from '@/components/index/ToolbarActions';
 import IndexFooter from '@/components/index/IndexFooter';
+import IndexLayout from '@/components/index/IndexLayout';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
+import { useIndexActions } from '@/components/index/IndexActions';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -29,6 +27,20 @@ const Index = () => {
   const [showRealTimePanel, setShowRealTimePanel] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [direction, setDirection] = useState<'ltr' | 'rtl'>(document.documentElement.dir as 'ltr' | 'rtl');
+  
+  // Get file actions from the hook
+  const fileActions = useIndexActions({
+    files: editor.files,
+    selectedFile: editor.selectedFile,
+    addFileToTree: editor.addFileToTree,
+    saveFilesToLocalStorage: editor.saveFilesToLocalStorage,
+    setFiles: editor.setFiles,
+    setSelectedFile: editor.setSelectedFile,
+    deleteFileFromTree: editor.deleteFileFromTree,
+    renameFile: editor.renameFile,
+    findFileById: editor.findFileById,
+    moveFileInTree: editor.moveFileInTree
+  });
   
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('akojs-seen-intro');
@@ -45,69 +57,6 @@ const Index = () => {
       }, 1000);
     }
   }, []);
-  
-  const handleFileCreate = (file: FileType, parentId?: string) => {
-    const updatedFiles = editor.addFileToTree(editor.files, file, parentId);
-    editor.setFiles(updatedFiles);
-    editor.saveFilesToLocalStorage(updatedFiles);
-    
-    if (file.type === 'file') {
-      editor.setSelectedFile(file);
-    }
-    
-    toast({
-      title: `${file.type === 'file' ? 'تم إنشاء الملف' : 'تم إنشاء المجلد'}`,
-      description: `تم إنشاء ${file.name} بنجاح.`,
-      duration: 2000,
-    });
-  };
-
-  const handleFileDelete = (fileId: string) => {
-    if (editor.selectedFile && editor.selectedFile.id === fileId) {
-      editor.setSelectedFile(null);
-    }
-    
-    const updatedFiles = editor.deleteFileFromTree(editor.files, fileId);
-    editor.setFiles(updatedFiles);
-    editor.saveFilesToLocalStorage(updatedFiles);
-    
-    toast({
-      title: "تم الحذف",
-      description: "تم حذف الملف أو المجلد.",
-      duration: 2000,
-    });
-  };
-
-  const handleFileRename = (fileId: string, newName: string) => {
-    const updatedFiles = editor.renameFile(editor.files, fileId, newName);
-    editor.setFiles(updatedFiles);
-    editor.saveFilesToLocalStorage(updatedFiles);
-    
-    if (editor.selectedFile && editor.selectedFile.id === fileId) {
-      const updatedFile = editor.findFileById(updatedFiles, fileId);
-      if (updatedFile) {
-        editor.setSelectedFile(updatedFile);
-      }
-    }
-    
-    toast({
-      title: "تمت إعادة التسمية",
-      description: `تمت إعادة التسمية إلى ${newName} بنجاح.`,
-      duration: 2000,
-    });
-  };
-  
-  const handleFileMove = (fileId: string, targetFolderId: string | null) => {
-    const updatedFiles = editor.moveFileInTree(editor.files, fileId, targetFolderId);
-    editor.setFiles(updatedFiles);
-    editor.saveFilesToLocalStorage(updatedFiles);
-    
-    toast({
-      title: "تم نقل الملف",
-      description: "تم نقل الملف بنجاح.",
-      duration: 2000,
-    });
-  };
 
   const handleDirectionChange = (newDirection: 'ltr' | 'rtl') => {
     setDirection(newDirection);
@@ -200,58 +149,33 @@ const Index = () => {
           )}
           
           <div className="flex-1">
-            {isMobile ? (
-              <MobileLayout 
-                showFileExplorer={editor.showFileExplorer}
-                setShowFileExplorer={editor.setShowFileExplorer}
-                files={editor.files}
-                handleFileSelect={editor.handleFileSelect}
-                handleFileCreate={handleFileCreate}
-                handleFileDelete={handleFileDelete}
-                handleFileRename={handleFileRename}
-                handleFileMove={handleFileMove}
-                selectedFile={editor.selectedFile}
-                activeTab={editor.activeTab}
-                setActiveTab={editor.setActiveTab}
-                getEditorContent={editor.getEditorContent}
-                setEditorContent={editor.setEditorContent}
-                html={editor.html}
-                css={editor.css}
-                getFinalJs={editor.getFinalJs}
-                shouldRun={editor.shouldRun}
-                onRunComplete={editor.handleRunComplete}
-                handleRun={editor.handleRun}
-                handleReset={editor.handleReset}
-                handleSaveAll={editor.handleSaveAll}
-                handleExportProject={editor.handleExportProject}
-              />
-            ) : (
-              <DesktopLayout 
-                showFileExplorer={editor.showFileExplorer}
-                files={editor.files}
-                handleFileSelect={editor.handleFileSelect}
-                handleFileCreate={handleFileCreate}
-                handleFileDelete={handleFileDelete}
-                handleFileRename={handleFileRename}
-                handleFileMove={handleFileMove}
-                selectedFile={editor.selectedFile}
-                activeTab={editor.activeTab}
-                setActiveTab={editor.setActiveTab}
-                getEditorContent={editor.getEditorContent}
-                setEditorContent={editor.setEditorContent}
-                html={editor.html}
-                css={editor.css}
-                getFinalJs={editor.getFinalJs}
-                shouldRun={editor.shouldRun}
-                onRunComplete={editor.handleRunComplete}
-                handleRun={editor.handleRun}
-                handleReset={editor.handleReset}
-                toggleFileExplorer={editor.toggleFileExplorer}
-                handleSaveAll={editor.handleSaveAll}
-                handleExportProject={editor.handleExportProject}
-                fileContent={editor.fileContent}
-              />
-            )}
+            <IndexLayout
+              showFileExplorer={editor.showFileExplorer}
+              setShowFileExplorer={editor.setShowFileExplorer}
+              files={editor.files}
+              handleFileSelect={editor.handleFileSelect}
+              handleFileCreate={fileActions.handleFileCreate}
+              handleFileDelete={fileActions.handleFileDelete}
+              handleFileRename={fileActions.handleFileRename}
+              handleFileMove={fileActions.handleFileMove}
+              selectedFile={editor.selectedFile}
+              activeTab={editor.activeTab}
+              setActiveTab={editor.setActiveTab}
+              getEditorContent={editor.getEditorContent}
+              setEditorContent={editor.setEditorContent}
+              html={editor.html}
+              css={editor.css}
+              getFinalJs={editor.getFinalJs}
+              shouldRun={editor.shouldRun}
+              onRunComplete={editor.handleRunComplete}
+              handleRun={editor.handleRun}
+              handleReset={editor.handleReset}
+              handleSaveAll={editor.handleSaveAll}
+              handleExportProject={editor.handleExportProject}
+              toggleFileExplorer={editor.toggleFileExplorer}
+              fileContent={editor.fileContent}
+              showRealTimePanel={showRealTimePanel}
+            />
           </div>
         </div>
       </main>
