@@ -54,16 +54,4 @@ const CollaboratorItem: React.FC<CollaboratorItemProps> = ({ collaborator }) => 
   );
 };
 
-// Create a utility function for getting initials
-<lov-write file_path="src/utils/userUtils.ts">
-export const getInitials = (name: string) => {
-  if (!name) return '??';
-  
-  const parts = name.trim().split(/\s+/);
-  
-  if (parts.length === 1) {
-    return parts[0].substring(0, 2).toUpperCase();
-  }
-  
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-};
+export default CollaboratorItem;
