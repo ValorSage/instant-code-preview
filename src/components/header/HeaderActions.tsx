@@ -12,13 +12,21 @@ interface HeaderActionsProps {
   showSaveButton?: boolean;
   isDarkMode?: boolean;
   toggleDarkMode?: () => void;
+  isSaving?: boolean;
+  onShare?: () => void;
+  onLogin?: () => void;
+  onProfile?: () => void;
 }
 
 const HeaderActions: React.FC<HeaderActionsProps> = ({
   onSave,
   showSaveButton = true,
   isDarkMode,
-  toggleDarkMode
+  toggleDarkMode,
+  isSaving = false,
+  onShare,
+  onLogin,
+  onProfile
 }) => {
   const { user, signOut } = useAuth();
   
@@ -38,9 +46,10 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
           size="sm"
           onClick={onSave}
           className="h-9"
+          disabled={isSaving}
         >
           <Save className="h-4 w-4 mr-2" />
-          <span>حفظ</span>
+          <span>{isSaving ? 'جاري الحفظ...' : 'حفظ'}</span>
         </Button>
       )}
       
@@ -50,12 +59,19 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
       )}
       
       {/* Profile Button */}
-      <Button variant="ghost" size="sm" asChild className="h-9">
-        <Link to="/profile">
+      {onProfile ? (
+        <Button variant="ghost" size="sm" onClick={onProfile} className="h-9">
           <User className="h-4 w-4 mr-2" />
           <span>الملف الشخصي</span>
-        </Link>
-      </Button>
+        </Button>
+      ) : (
+        <Button variant="ghost" size="sm" asChild className="h-9">
+          <Link to="/profile">
+            <User className="h-4 w-4 mr-2" />
+            <span>الملف الشخصي</span>
+          </Link>
+        </Button>
+      )}
       
       {/* Logout Button */}
       {user && (

@@ -120,8 +120,8 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
       content,
       sender: {
         id: user?.id || '1',
-        name: user?.username || 'المستخدم الحالي',
-        avatar: user?.avatarUrl || '',
+        name: user?.email?.split('@')[0] || 'المستخدم الحالي', // Use email or default value
+        avatar: '',
       },
       timestamp: new Date(),
       isCurrentUser: true,

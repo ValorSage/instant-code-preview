@@ -13,12 +13,20 @@ import {
   updateFileContent,
   saveFilesToLocalStorage,
   loadFilesFromLocalStorage,
-  getDefaultFileContent
+  getDefaultFileContent,
+  addFileToTree,
+  deleteFileFromTree,
+  renameFile,
+  moveFileInTree
 } from '@/utils/fileUtils';
 import { toast } from '@/hooks/use-toast';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useProjects } from '@/contexts/ProjectContext';
 
 export const useEditor = () => {
+  // Get current project from ProjectContext
+  const { currentProject } = useProjects();
+  
   // State for editor content
   const [html, setHtml] = useState(defaultHtml);
   const [css, setCss] = useState(defaultCss);
@@ -432,6 +440,15 @@ export const useEditor = () => {
     getFinalJs,
     getEditorContent,
     setEditorContent,
-    showHelpToast
+    showHelpToast,
+    // Export file utility functions so they can be accessed directly
+    addFileToTree,
+    deleteFileFromTree,
+    renameFile,
+    moveFileInTree,
+    findFileById,
+    saveFilesToLocalStorage,
+    // Include currentProject from the projects context
+    currentProject
   };
 };
