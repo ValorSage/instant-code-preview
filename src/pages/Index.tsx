@@ -1,5 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEditor } from '@/hooks/use-editor';
@@ -18,18 +18,17 @@ import { toast } from '@/hooks/use-toast';
 import { FileType } from '@/components/FileExplorer/FileExplorer';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Folders, Search, Users, Settings, Keyboard, FileBadge } from 'lucide-react';
+import { Folders, Search, Users, Settings, Keyboard, FileBadge, Beaker, BookOpen, Globe } from 'lucide-react';
 import SearchDialog from '@/components/SearchDialog';
 import CollaborationPanel from '@/components/CollaborationPanel';
 import AdvancedSettings from '@/components/AdvancedSettings';
 import ProjectManagementDialog from '@/components/ProjectManagementDialog';
+import RealTimeCollaboration from '@/components/RealTimeCollaboration';
+import LanguageSelector from '@/components/LanguageSelector';
+import DirectionToggle from '@/components/DirectionToggle';
 import { useProjects } from '@/contexts/ProjectContext';
 
-// This would be populated from real user data in a full implementation
-const onlineUsers = [
-  { id: 'u1', name: 'User 1', color: '#4f46e5' },
-  { id: 'u2', name: 'User 2', color: '#059669' },
-];
+const isRtl = document.documentElement.dir === 'rtl';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -41,8 +40,10 @@ const Index = () => {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [keyboardShortcutsOpen, setKeyboardShortcutsOpen] = useState(false);
   const [projectManagementOpen, setProjectManagementOpen] = useState(false);
+  const [showRealTimePanel, setShowRealTimePanel] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('javascript');
+  const [direction, setDirection] = useState<'ltr' | 'rtl'>(document.documentElement.dir as 'ltr' | 'rtl');
   
-  // Show introduction toast on first load
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem('akojs-seen-intro');
     
@@ -59,13 +60,11 @@ const Index = () => {
     }
   }, []);
   
-  // Handle file creation
   const handleFileCreate = (file: FileType, parentId?: string) => {
     const updatedFiles = addFileToTree(editor.files, file, parentId);
     editor.setFiles(updatedFiles);
     saveFilesToLocalStorage(updatedFiles);
     
-    // Select the newly created file if it's a file (not a folder)
     if (file.type === 'file') {
       editor.setSelectedFile(file);
     }
@@ -77,9 +76,7 @@ const Index = () => {
     });
   };
 
-  // Handle file deletion
   const handleFileDelete = (fileId: string) => {
-    // If the deleted file is currently selected, clear selection
     if (editor.selectedFile && editor.selectedFile.id === fileId) {
       editor.setSelectedFile(null);
     }
@@ -95,13 +92,11 @@ const Index = () => {
     });
   };
 
-  // Handle file rename
   const handleFileRename = (fileId: string, newName: string) => {
     const updatedFiles = renameFile(editor.files, fileId, newName);
     editor.setFiles(updatedFiles);
     saveFilesToLocalStorage(updatedFiles);
     
-    // Update selected file if it was renamed
     if (editor.selectedFile && editor.selectedFile.id === fileId) {
       const updatedFile = findFileById(updatedFiles, fileId);
       if (updatedFile) {
@@ -116,7 +111,6 @@ const Index = () => {
     });
   };
   
-  // Handle file move (for drag and drop)
   const handleFileMove = (fileId: string, targetFolderId: string | null) => {
     const updatedFiles = moveFileInTree(editor.files, fileId, targetFolderId);
     editor.setFiles(updatedFiles);
@@ -129,7 +123,16 @@ const Index = () => {
     });
   };
 
-  // Toggle collaborators visibility
+  const handleDirectionChange = (newDirection: 'ltr' | 'rtl') => {
+    setDirection(newDirection);
+    document.documentElement.dir = newDirection;
+    localStorage.setItem('akojs-direction', newDirection);
+    
+    const newLang = newDirection === 'rtl' ? 'ar' : 'en';
+    document.documentElement.lang = newLang;
+    localStorage.setItem('akojs-lang', newLang);
+  };
+
   const toggleCollaborationPanel = () => {
     setCollaborationPanelOpen(!collaborationPanelOpen);
     
@@ -163,6 +166,20 @@ const Index = () => {
     setSearchDialogOpen(false);
   };
 
+  const handleLanguageChange = (langId: string) => {
+    setSelectedLanguage(langId);
+    
+    toast({
+      title: "تم تغيير اللغة",
+      description: `تم تغيير لغة البرمجة إلى ${langId}`,
+      duration: 2000,
+    });
+  };
+
+  const toggleRealTimePanel = () => {
+    setShowRealTimePanel(!showRealTimePanel);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col bg-background transition-colors duration-300`}>
       <Header 
@@ -176,9 +193,8 @@ const Index = () => {
       />
       
       <main className="flex flex-col flex-grow p-2 md:p-6 space-y-4">
-        {/* Action toolbar */}
         <div className="flex items-center justify-between px-2">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
             {currentProject ? (
               <Badge variant="outline" className="text-xs px-3 py-1 h-7">
                 {currentProject.name}
@@ -197,9 +213,43 @@ const Index = () => {
               <Folders className="h-3.5 w-3.5" />
               <span>إدارة المشاريع</span>
             </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+              className="h-7 gap-1 text-xs"
+            >
+              <Link to="/projects">
+                <BookOpen className="h-3.5 w-3.5" />
+                <span>كل المشاريع</span>
+              </Link>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+              className="h-7 gap-1 text-xs"
+            >
+              <Link to="/simulation">
+                <Beaker className="h-3.5 w-3.5" />
+                <span>بيئة المحاكاة</span>
+              </Link>
+            </Button>
           </div>
           
           <div className="flex items-center gap-2">
+            <DirectionToggle 
+              direction={direction}
+              onChange={handleDirectionChange}
+            />
+            
+            <LanguageSelector 
+              selectedLanguage={selectedLanguage}
+              onLanguageSelect={handleLanguageChange}
+            />
+            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -216,7 +266,12 @@ const Index = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={toggleCollaborationPanel} className="h-8 w-8 p-1">
+                  <Button 
+                    variant={showRealTimePanel ? "secondary" : "ghost"} 
+                    size="sm" 
+                    onClick={toggleRealTimePanel} 
+                    className="h-8 w-8 p-1"
+                  >
                     <Users className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -229,8 +284,10 @@ const Index = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={handleSettingsDialogOpen} className="h-8 w-8 p-1">
-                    <Settings className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-1">
+                    <Link to="/settings">
+                      <Settings className="h-4 w-4" />
+                    </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -254,72 +311,79 @@ const Index = () => {
           </div>
         </div>
         
-        {isMobile ? (
-          // Mobile layout
-          <MobileLayout 
-            showFileExplorer={editor.showFileExplorer}
-            setShowFileExplorer={editor.setShowFileExplorer}
-            files={editor.files}
-            handleFileSelect={editor.handleFileSelect}
-            handleFileCreate={handleFileCreate}
-            handleFileDelete={handleFileDelete}
-            handleFileRename={handleFileRename}
-            handleFileMove={handleFileMove}
-            selectedFile={editor.selectedFile}
-            activeTab={editor.activeTab}
-            setActiveTab={editor.setActiveTab}
-            getEditorContent={editor.getEditorContent}
-            setEditorContent={editor.setEditorContent}
-            html={editor.html}
-            css={editor.css}
-            getFinalJs={editor.getFinalJs}
-            shouldRun={editor.shouldRun}
-            onRunComplete={editor.handleRunComplete}
-            handleRun={editor.handleRun}
-            handleReset={editor.handleReset}
-            handleSaveAll={editor.handleSaveAll}
-            handleExportProject={editor.handleExportProject}
-          />
-        ) : (
-          // Desktop layout
-          <DesktopLayout 
-            showFileExplorer={editor.showFileExplorer}
-            files={editor.files}
-            handleFileSelect={editor.handleFileSelect}
-            handleFileCreate={handleFileCreate}
-            handleFileDelete={handleFileDelete}
-            handleFileRename={handleFileRename}
-            handleFileMove={handleFileMove}
-            selectedFile={editor.selectedFile}
-            activeTab={editor.activeTab}
-            setActiveTab={editor.setActiveTab}
-            getEditorContent={editor.getEditorContent}
-            setEditorContent={editor.setEditorContent}
-            html={editor.html}
-            css={editor.css}
-            getFinalJs={editor.getFinalJs}
-            shouldRun={editor.shouldRun}
-            onRunComplete={editor.handleRunComplete}
-            handleRun={editor.handleRun}
-            handleReset={editor.handleReset}
-            toggleFileExplorer={editor.toggleFileExplorer}
-            handleSaveAll={editor.handleSaveAll}
-            handleExportProject={editor.handleExportProject}
-            fileContent={editor.fileContent}
-          />
-        )}
+        <div className="flex flex-1 gap-4">
+          {!isMobile && showRealTimePanel && (
+            <div className="w-80 flex-shrink-0">
+              <RealTimeCollaboration projectId={currentProject?.id} />
+            </div>
+          )}
+          
+          <div className="flex-1">
+            {isMobile ? (
+              <MobileLayout 
+                showFileExplorer={editor.showFileExplorer}
+                setShowFileExplorer={editor.setShowFileExplorer}
+                files={editor.files}
+                handleFileSelect={editor.handleFileSelect}
+                handleFileCreate={handleFileCreate}
+                handleFileDelete={handleFileDelete}
+                handleFileRename={handleFileRename}
+                handleFileMove={handleFileMove}
+                selectedFile={editor.selectedFile}
+                activeTab={editor.activeTab}
+                setActiveTab={editor.setActiveTab}
+                getEditorContent={editor.getEditorContent}
+                setEditorContent={editor.setEditorContent}
+                html={editor.html}
+                css={editor.css}
+                getFinalJs={editor.getFinalJs}
+                shouldRun={editor.shouldRun}
+                onRunComplete={editor.handleRunComplete}
+                handleRun={editor.handleRun}
+                handleReset={editor.handleReset}
+                handleSaveAll={editor.handleSaveAll}
+                handleExportProject={editor.handleExportProject}
+              />
+            ) : (
+              <DesktopLayout 
+                showFileExplorer={editor.showFileExplorer}
+                files={editor.files}
+                handleFileSelect={editor.handleFileSelect}
+                handleFileCreate={handleFileCreate}
+                handleFileDelete={handleFileDelete}
+                handleFileRename={handleFileRename}
+                handleFileMove={handleFileMove}
+                selectedFile={editor.selectedFile}
+                activeTab={editor.activeTab}
+                setActiveTab={editor.setActiveTab}
+                getEditorContent={editor.getEditorContent}
+                setEditorContent={editor.setEditorContent}
+                html={editor.html}
+                css={editor.css}
+                getFinalJs={editor.getFinalJs}
+                shouldRun={editor.shouldRun}
+                onRunComplete={editor.handleRunComplete}
+                handleRun={editor.handleRun}
+                handleReset={editor.handleReset}
+                toggleFileExplorer={editor.toggleFileExplorer}
+                handleSaveAll={editor.handleSaveAll}
+                handleExportProject={editor.handleExportProject}
+                fileContent={editor.fileContent}
+              />
+            )}
+          </div>
+        </div>
       </main>
       
       <footer className="py-3 text-center text-sm text-muted-foreground border-t border-border">
         <p>Ako.js - منصة تحرير الكود المباشر بتجربة مستخدم سلسة</p>
-        <div className="flex items-center justify-center mt-1 space-x-2">
+        <div className="flex items-center justify-center mt-1 space-x-2 rtl:space-x-reverse">
           <Badge variant="outline" className="text-xs h-5">v1.0</Badge>
           <Badge variant="outline" className="text-xs h-5">Arabic UI</Badge>
           <Badge variant="outline" className="text-xs h-5">Multi-language</Badge>
         </div>
       </footer>
       
-      {/* Modals and Panels */}
       <SearchDialog 
         isOpen={searchDialogOpen}
         onClose={() => setSearchDialogOpen(false)}
