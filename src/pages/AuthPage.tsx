@@ -23,11 +23,11 @@ const AuthPage: React.FC = () => {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   
   useEffect(() => {
-    // Clear error when tab changes
+    // تنظيف رسالة الخطأ عند تغيير التبويب
     setErrorMessage(null);
   }, [activeTab]);
 
-  // Redirect if already logged in
+  // إعادة توجيه إذا كان المستخدم مسجل الدخول بالفعل
   if (user) {
     return <Navigate to="/" replace />;
   }
@@ -55,7 +55,13 @@ const AuthPage: React.FC = () => {
     setLoading(false);
 
     if (error) {
-      setErrorMessage("خطأ في تسجيل الدخول. يرجى التحقق من بريدك الإلكتروني وكلمة المرور.");
+      if (error.message.includes("Email not confirmed")) {
+        setErrorMessage("لم يتم تأكيد البريد الإلكتروني بعد. يرجى التحقق من بريدك الإلكتروني");
+      } else if (error.message.includes("Invalid login credentials")) {
+        setErrorMessage("بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور");
+      } else {
+        setErrorMessage(error.message || "خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى");
+      }
     } else {
       toast({
         title: "تم تسجيل الدخول بنجاح",
@@ -89,17 +95,18 @@ const AuthPage: React.FC = () => {
 
     if (error) {
       if (error.message.includes("Email already registered")) {
-        setErrorMessage("البريد الإلكتروني مسجل بالفعل");
+        setErrorMessage("البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول أو استخدام بريد إلكتروني آخر");
       } else {
-        setErrorMessage(error.message || "حدث خطأ أثناء إنشاء الحساب");
+        setErrorMessage(error.message || "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى");
       }
     } else {
       toast({
         title: "تم إنشاء الحساب بنجاح",
-        description: "يرجى تسجيل الدخول بحسابك الجديد",
+        description: "تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.",
+        duration: 8000,
       });
       
-      // Switch to login tab after successful registration
+      // الانتقال إلى تبويب تسجيل الدخول بعد التسجيل الناجح
       setActiveTab('signin');
     }
   };
@@ -122,9 +129,14 @@ const AuthPage: React.FC = () => {
         description="تسجيل الدخول أو إنشاء حساب جديد في منصة كودر التفاعلية"
       />
       
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-background to-secondary/20 p-4">
-        <div className="absolute top-4 left-4">
-          <Button variant="ghost" size="sm" asChild>
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-b from-gray-900 to-black p-4 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(82,63,165,0.2)_0,rgba(15,12,25,0.8)_100%)]"></div>
+          <div className="absolute bottom-0 left-0 right-0 top-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+        </div>
+        
+        <div className="absolute top-4 left-4 z-10">
+          <Button variant="ghost" size="sm" asChild className="text-white hover:text-primary hover:bg-white/5">
             <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
               العودة للرئيسية
@@ -132,18 +144,18 @@ const AuthPage: React.FC = () => {
           </Button>
         </div>
         
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md z-10">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-primary">منصة كودر التفاعلية</h1>
-            <p className="text-muted-foreground mt-2">بيئة تطوير متكاملة للمبرمجين</p>
+            <h1 className="text-3xl font-bold text-white">منصة كودر التفاعلية</h1>
+            <p className="text-white/70 mt-2">بيئة تطوير متكاملة للمبرمجين</p>
           </div>
           
-          <Card className="border-2 shadow-lg animate-fade-in">
+          <Card className="backdrop-blur-lg bg-black/30 border-purple-500/20 shadow-2xl animate-fade-in">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl text-center">
+              <CardTitle className="text-2xl text-center text-white">
                 {activeTab === 'signin' ? 'تسجيل الدخول' : 'إنشاء حساب جديد'}
               </CardTitle>
-              <CardDescription className="text-center">
+              <CardDescription className="text-center text-white/70">
                 {activeTab === 'signin' 
                   ? 'أدخل بيانات حسابك للوصول إلى منصتك الشخصية' 
                   : 'قم بإنشاء حساب جديد للاستفادة من جميع المميزات'}
@@ -151,9 +163,9 @@ const AuthPage: React.FC = () => {
             </CardHeader>
             
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="signin">تسجيل الدخول</TabsTrigger>
-                <TabsTrigger value="signup">حساب جديد</TabsTrigger>
+              <TabsList className="grid grid-cols-2 w-full bg-gray-800/50">
+                <TabsTrigger value="signin" className="text-white data-[state=active]:bg-primary data-[state=active]:text-white">تسجيل الدخول</TabsTrigger>
+                <TabsTrigger value="signup" className="text-white data-[state=active]:bg-primary data-[state=active]:text-white">حساب جديد</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">

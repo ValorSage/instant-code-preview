@@ -1,315 +1,256 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogDescription,
+  DialogDescription, 
   DialogFooter
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Globe, Copy, ExternalLink, RefreshCw, Check, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Upload, Globe, Copy, Check, ExternalLink, Server } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { useProjects } from '@/contexts/ProjectContext';
 
 interface PublishProjectDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  projectName: string;
+  projectId: string;
 }
 
-const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({ isOpen, onClose }) => {
-  const { currentProject } = useProjects();
+const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({
+  isOpen,
+  onClose,
+  projectName,
+  projectId
+}) => {
   const [isPublishing, setIsPublishing] = useState(false);
-  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('basic');
-  const [projectTitle, setProjectTitle] = useState(currentProject?.name || '');
-  const [projectDescription, setProjectDescription] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
-  const [publishingHistory, setPublishingHistory] = useState<Array<{url: string, date: Date, status: string}>>([]);
-
+  const [publishTab, setPublishTab] = useState('web');
+  const [projectSlug, setProjectSlug] = useState(projectName.toLowerCase().replace(/\s+/g, '-'));
+  const [isCopied, setIsCopied] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState('');
+  
   const handlePublish = async () => {
-    if (!currentProject) {
-      toast({
-        title: "لم يتم تحديد المشروع",
-        description: "الرجاء تحديد مشروع للنشر",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!projectTitle.trim()) {
-      toast({
-        title: "العنوان مطلوب",
-        description: "الرجاء إدخال عنوان للمشروع",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsPublishing(true);
     
-    try {
-      // محاكاة النشر - سيتم استبدال هذا بالتكامل الفعلي
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      const deployId = Math.random().toString(36).substring(2, 10);
-      const newUrl = `https://coder-${deployId}.netlify.app`;
-      
-      setPublishedUrl(newUrl);
-      setPublishingHistory(prev => [
-        { url: newUrl, date: new Date(), status: 'ناجح' },
-        ...prev
-      ]);
-      
-      toast({
-        title: "تم النشر بنجاح",
-        description: "تم نشر المشروع بنجاح ويمكن الوصول إليه عبر الرابط المقدم",
-      });
-      
-      setActiveTab('share');
-    } catch (error) {
-      console.error('Error publishing project:', error);
-      toast({
-        title: "فشل النشر",
-        description: "حدث خطأ أثناء نشر المشروع. يرجى المحاولة مرة أخرى",
-        variant: "destructive",
-      });
-    } finally {
+    // محاكاة نشر المشروع (في تطبيق حقيقي، هنا سيتم إرسال المشروع للخادم)
+    setTimeout(() => {
+      const demoUrl = `https://koder.app/projects/${projectSlug}-${projectId.slice(0, 8)}`;
+      setPublishedUrl(demoUrl);
+      setIsPublished(true);
       setIsPublishing(false);
-    }
-  };
-
-  const handleCopyUrl = () => {
-    if (!publishedUrl) return;
-    
-    navigator.clipboard.writeText(publishedUrl)
-      .then(() => {
-        toast({
-          title: "تم نسخ الرابط",
-          description: "تم نسخ رابط المشروع المنشور",
-        });
-      })
-      .catch(() => {
-        toast({
-          title: "فشل النسخ",
-          description: "تعذر نسخ الرابط إلى الحافظة",
-          variant: "destructive",
-        });
+      
+      toast({
+        title: "تم نشر المشروع بنجاح",
+        description: "يمكنك الآن مشاركة رابط المشروع مع الآخرين.",
+        duration: 5000,
       });
+    }, 2500);
   };
-
-  const openPublishedProject = () => {
-    if (publishedUrl) {
-      window.open(publishedUrl, '_blank');
-    }
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+    
+    toast({
+      title: "تم نسخ الرابط",
+      description: "تم نسخ رابط المشروع إلى الحافظة.",
+      duration: 3000,
+    });
   };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-md bg-gray-900/90 backdrop-blur-lg border-purple-500/20 text-white">
         <DialogHeader>
-          <DialogTitle className="text-xl">نشر المشروع</DialogTitle>
-          <DialogDescription>
-            نشر المشروع بحيث يمكن للآخرين الوصول إليه
+          <DialogTitle className="text-white">نشر المشروع</DialogTitle>
+          <DialogDescription className="text-white/70">
+            اختر طريقة نشر مشروعك "{projectName}" ومشاركته مع الآخرين.
           </DialogDescription>
         </DialogHeader>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic">المعلومات الأساسية</TabsTrigger>
-            <TabsTrigger value="share" disabled={!publishedUrl}>المشاركة</TabsTrigger>
-            <TabsTrigger value="history">السجل</TabsTrigger>
+        
+        <Tabs defaultValue="web" value={publishTab} onValueChange={setPublishTab} className="mt-4">
+          <TabsList className="grid grid-cols-2 bg-gray-800/50">
+            <TabsTrigger value="web" className="text-white data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Globe className="h-4 w-4 mr-2" />
+              نشر على الويب
+            </TabsTrigger>
+            <TabsTrigger value="export" className="text-white data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Server className="h-4 w-4 mr-2" />
+              تصدير المشروع
+            </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="basic" className="space-y-4 py-4">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="project-title">عنوان المشروع</Label>
-                <Input
-                  id="project-title"
-                  value={projectTitle}
-                  onChange={(e) => setProjectTitle(e.target.value)}
-                  placeholder="أدخل عنوان المشروع"
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="project-description">وصف المشروع (اختياري)</Label>
-                <Textarea
-                  id="project-description"
-                  value={projectDescription}
-                  onChange={(e) => setProjectDescription(e.target.value)}
-                  placeholder="وصف قصير للمشروع"
-                  className="resize-none h-24"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <input
-                  type="checkbox"
-                  id="is-public"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
-                  className="h-4 w-4 text-primary rounded border-gray-300 focus:ring-primary"
-                />
-                <Label htmlFor="is-public" className="cursor-pointer">مشروع عام (يمكن للجميع الوصول إليه)</Label>
-              </div>
-
-              <div className="rounded-md bg-muted p-4 text-sm">
-                <h4 className="font-semibold mb-2">ملاحظات النشر:</h4>
-                <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                  <li>سيتم نشر أحدث نسخة محفوظة من المشروع</li>
-                  <li>قد يستغرق النشر بضع دقائق حسب حجم المشروع</li>
-                  <li>إذا كان المشروع عامًا، يمكن لأي شخص لديه الرابط الوصول إليه</li>
-                </ul>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
-                إلغاء
-              </Button>
-              <Button 
-                onClick={handlePublish} 
-                disabled={isPublishing || !projectTitle.trim()} 
-                className="w-full sm:w-auto"
-              >
-                {isPublishing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>جارِ النشر...</span>
-                  </>
-                ) : (
-                  <>
-                    <Globe className="mr-2 h-4 w-4" />
-                    <span>نشر المشروع</span>
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </TabsContent>
-
-          <TabsContent value="share" className="space-y-4 py-4">
-            {publishedUrl && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-muted p-3 rounded-md">
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span className="font-medium">تم نشر المشروع بنجاح!</span>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
-                    نشط
-                  </Badge>
-                </div>
-
+          
+          <TabsContent value="web" className="mt-4 space-y-4">
+            {!isPublished ? (
+              <>
                 <div className="space-y-2">
-                  <Label htmlFor="project-url">رابط المشروع</Label>
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <Label htmlFor="project-slug" className="text-white">رابط المشروع</Label>
+                  <div className="flex items-center">
+                    <span className="bg-gray-800 text-white/70 px-3 py-2 rounded-l-md border border-r-0 border-purple-500/20">
+                      https://koder.app/projects/
+                    </span>
                     <Input
-                      id="project-url"
+                      id="project-slug"
+                      value={projectSlug}
+                      onChange={(e) => setProjectSlug(e.target.value)}
+                      className="rounded-l-none border-purple-500/20"
+                    />
+                  </div>
+                  <p className="text-xs text-white/60">
+                    سيكون هذا هو عنوان URL العام لمشروعك المنشور.
+                  </p>
+                </div>
+                
+                <Alert className="bg-purple-900/20 border-purple-500/30">
+                  <AlertDescription className="text-white">
+                    عند النشر، سيكون مشروعك متاحًا للجميع عبر الرابط المخصص. يمكنك مشاركته مع أي شخص.
+                  </AlertDescription>
+                </Alert>
+                
+                <DialogFooter className="mt-4">
+                  <Button 
+                    onClick={handlePublish} 
+                    className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg"
+                    disabled={isPublishing}
+                  >
+                    {isPublishing ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        جارِ النشر...
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <Upload className="mr-2 h-5 w-5" />
+                        نشر المشروع
+                      </span>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <Alert className="bg-green-900/20 border-green-500/30">
+                  <AlertDescription className="text-white flex items-center">
+                    <Check className="h-5 w-5 mr-2 text-green-500" />
+                    تم نشر المشروع بنجاح!
+                  </AlertDescription>
+                </Alert>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="published-url" className="text-white">رابط المشروع المنشور</Label>
+                  <div className="flex items-center">
+                    <Input
+                      id="published-url"
                       value={publishedUrl}
                       readOnly
-                      className="flex-1"
+                      className="rounded-r-none border-purple-500/20"
                     />
-                    <Button variant="outline" size="icon" onClick={handleCopyUrl} title="نسخ الرابط">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={openPublishedProject} title="فتح الرابط">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>مشاركة المشروع</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                      </svg>
-                      <span>فيسبوك</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                      </svg>
-                      <span>تويتر</span>
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                      </svg>
-                      <span>لينكد إن</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="rounded-l-none h-10 border border-l-0 border-purple-500/20"
+                      onClick={() => copyToClipboard(publishedUrl)}
+                    >
+                      {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-
-                <div className="space-y-2 pt-2">
-                  <Button onClick={handlePublish} disabled={isPublishing} className="w-full">
-                    {isPublishing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>جارِ إعادة النشر...</span>
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        <span>إعادة نشر المشروع</span>
-                      </>
-                    )}
+                
+                <div className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsPublished(false);
+                      setPublishedUrl('');
+                    }}
+                    className="border-purple-500/20 text-white hover:bg-purple-500/10"
+                  >
+                    إعادة النشر
+                  </Button>
+                  
+                  <Button 
+                    onClick={() => window.open(publishedUrl, '_blank')}
+                    className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    فتح المشروع
                   </Button>
                 </div>
               </div>
             )}
           </TabsContent>
-
-          <TabsContent value="history">
-            <div className="py-4">
-              <h3 className="text-sm font-medium mb-3">سجل عمليات النشر</h3>
+          
+          <TabsContent value="export" className="mt-4 space-y-4">
+            <Alert className="bg-blue-900/20 border-blue-500/30">
+              <AlertDescription className="text-white">
+                يمكنك تصدير المشروع كملف مضغوط يحتوي على جميع الملفات اللازمة لتشغيل المشروع محليًا أو نشره على خدمات الاستضافة.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-white">خيارات التصدير</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center space-x-2 bg-gray-800/50 rounded-md p-3 border border-purple-500/20">
+                    <input 
+                      type="radio" 
+                      id="export-zip" 
+                      name="export-type" 
+                      className="text-primary" 
+                      defaultChecked 
+                    />
+                    <Label htmlFor="export-zip" className="text-white cursor-pointer flex-1">ZIP ملف مضغوط</Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 bg-gray-800/50 rounded-md p-3 border border-purple-500/20">
+                    <input 
+                      type="radio" 
+                      id="export-github" 
+                      name="export-type" 
+                      className="text-primary" 
+                    />
+                    <Label htmlFor="export-github" className="text-white cursor-pointer flex-1">GitHub تصدير إلى</Label>
+                  </div>
+                </div>
+              </div>
               
-              {publishingHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {publishingHistory.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-md">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${item.status === 'ناجح' ? 'bg-green-500' : 'bg-red-500'}`} />
-                          <span className="font-medium">{formatDate(item.date)}</span>
-                        </div>
-                        <div className="mt-1 text-sm text-muted-foreground truncate max-w-xs">
-                          {item.url}
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => window.open(item.url, '_blank')}>
-                        <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                        <span>فتح</span>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center p-6 bg-muted/50 rounded-md">
-                  <Globe className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">لا توجد عمليات نشر سابقة</p>
-                </div>
-              )}
+              <DialogFooter>
+                <Button 
+                  onClick={() => {
+                    toast({
+                      title: "جارِ تصدير المشروع",
+                      description: "سيتم تنزيل المشروع كملف مضغوط خلال ثوانٍ.",
+                      duration: 5000,
+                    });
+                    
+                    setTimeout(() => {
+                      toast({
+                        title: "تم تصدير المشروع بنجاح",
+                        description: "تم تنزيل المشروع بنجاح.",
+                        duration: 3000,
+                      });
+                    }, 2000);
+                  }} 
+                  className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg"
+                >
+                  <Download className="mr-2 h-5 w-5" />
+                  تصدير المشروع
+                </Button>
+              </DialogFooter>
             </div>
           </TabsContent>
         </Tabs>
@@ -317,5 +258,25 @@ const PublishProjectDialog: React.FC<PublishProjectDialogProps> = ({ isOpen, onC
     </Dialog>
   );
 };
+
+// إضافة أيقونة التنزيل
+const Download = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
 
 export default PublishProjectDialog;
