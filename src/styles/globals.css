@@ -45,8 +45,9 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
   }
   
   html.dark *::-webkit-scrollbar {
@@ -91,6 +92,169 @@
   .input-field {
     @apply bg-black/30 border border-purple-500/20 text-white rounded-md px-4 py-2 focus:border-purple-500/50 focus:outline-none focus:ring-1 focus:ring-purple-500/30;
   }
+  
+  /* تأثيرات الأزرار */
+  .btn-ripple {
+    @apply relative overflow-hidden;
+  }
+  
+  .btn-ripple::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.8s;
+  }
+  
+  .btn-ripple:active::after {
+    transform: scale(0, 0);
+    opacity: 0.3;
+    transition: 0s;
+  }
+  
+  .btn-vapor {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-vapor.clicked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 80px;
+    height: 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50% 50% 0 0;
+    transform: translateX(-50%);
+    animation: vaporRise 0.8s ease-out forwards;
+    opacity: 0;
+  }
+  
+  @keyframes vaporRise {
+    0% {
+      height: 0;
+      opacity: 0.5;
+      bottom: 0;
+    }
+    50% {
+      height: 50px;
+      opacity: 0.3;
+    }
+    100% {
+      height: 80px;
+      opacity: 0;
+      bottom: 100%;
+    }
+  }
+  
+  .btn-bubble:active::before,
+  .btn-bubble:active::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    animation: bubbleUp 0.6s ease-out;
+  }
+  
+  .btn-bubble:active::before {
+    width: 15px; height: 15px;
+    left: 30%; bottom: -10px;
+    animation-delay: 0.1s;
+  }
+  
+  .btn-bubble:active::after {
+    width: 10px; height: 10px;
+    left: 60%; bottom: -10px;
+    animation-delay: 0.25s;
+  }
+  
+  @keyframes bubbleUp {
+    0% {
+      bottom: -10px;
+      opacity: 1;
+      transform: scale(0.5);
+    }
+    100% {
+      bottom: 120%;
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  
+  /* تحسين عرض الإشعارات */
+  .notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .message {
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideInFadeIn 0.5s ease-out forwards;
+    min-width: 250px;
+    font-size: 14px;
+  }
+  
+  .message.success {
+    background: linear-gradient(45deg, #28a745, #218838);
+  }
+  
+  .message.error {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+  }
+  
+  .message.info {
+    background: linear-gradient(45deg, #17a2b8, #138496);
+  }
+  
+  .message.warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    color: #333;
+  }
+  
+  @keyframes slideInFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .message.fadeOut {
+    animation: slideOutFadeOut 0.5s ease-in forwards;
+  }
+  
+  @keyframes slideOutFadeOut {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
 }
 
 @layer utilities {
@@ -113,4 +277,116 @@
     text-shadow: 0 0 10px rgba(155, 135, 245, 0.5),
                  0 0 20px rgba(155, 135, 245, 0.3);
   }
+  
+  /* خلفية متحركة */
+  .animated-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+  
+  .animated-background::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(143, 100, 255, 0.2) 0%, rgba(0, 0, 0, 0) 70%),
+                radial-gradient(circle at 70% 60%, rgba(90, 50, 180, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+  }
+  
+  .animated-background .grid {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px;
+    transform-origin: center;
+    animation: gridAnimation 40s linear infinite;
+  }
+  
+  @keyframes gridAnimation {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+  
+  .animated-background .particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  
+  .particle {
+    position: absolute;
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFloat 3s ease-in-out infinite alternate;
+  }
+  
+  @keyframes particleFloat {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(-20px) rotate(360deg);
+      opacity: 0;
+    }
+  }
+}
+
+/* تحسين عرض الصفحة في الأجهزة المختلفة */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* إصلاح مشكلة الشاشة السوداء عند التمرير للأسفل */
+body:after {
+  content: "";
+  display: block;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: var(--background);
+  z-index: -1000;
+}
+
+/* تحسين لمظهر النص باللغة العربية */
+:lang(ar) {
+  line-height: 1.8;
+  letter-spacing: 0;
 }

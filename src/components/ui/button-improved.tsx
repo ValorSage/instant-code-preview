@@ -90,11 +90,41 @@ export interface ButtonProps
 const ButtonImproved = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, isLoading, loadingText, hasAnimation, children, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    
+    // تأثير الضغط على الزر
+    const [isPressed, setIsPressed] = React.useState(false);
+    
+    const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setIsPressed(true);
+      props.onMouseDown?.(e);
+    };
+    
+    const handleMouseUp = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setTimeout(() => setIsPressed(false), 300);
+      props.onMouseUp?.(e);
+    };
+    
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      // إضافة تأثير صوتي بسيط (اختياري)
+      if (typeof window !== 'undefined' && window.navigator?.vibrate) {
+        window.navigator.vibrate(50); // يعمل فقط على الأجهزة المحمولة المدعومة
+      }
+      
+      props.onClick?.(e);
+    };
+    
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, isLoading, hasAnimation, className }))}
+        className={cn(
+          buttonVariants({ variant, size, isLoading, hasAnimation, className }),
+          isPressed ? 'btn-ripple' : '',
+          'relative overflow-hidden'
+        )}
         ref={ref}
         disabled={props.disabled || isLoading}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onClick={handleClick}
         {...props}
       >
         <>
