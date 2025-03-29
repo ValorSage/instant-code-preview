@@ -1,9 +1,4 @@
 
-/**
- * Extracts initials from a person's name
- * @param name Full name to extract initials from
- * @returns One or two character initials
- */
 export const getInitials = (name: string) => {
   if (!name) return '??';
   

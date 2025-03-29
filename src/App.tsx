@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,9 +50,11 @@ const App = () => {
                     <ProfilePage />
                   </ProtectedRoute>
                 } />
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/tools" element={<DevelopmentTools />} />
-                </Route>
+                <Route path="/tools" element={
+                  <ProtectedRoute>
+                    <DevelopmentTools />
+                  </ProtectedRoute>
+                } />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

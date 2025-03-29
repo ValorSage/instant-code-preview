@@ -198,7 +198,10 @@ const ProjectPublisher: React.FC<ProjectPublisherProps> = ({ projectId, projectN
                   <div key={index} className="flex justify-between items-center p-3 border rounded-md">
                     <div>
                       <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <Badge variant={item.status === 'ناجح' ? 'success' : 'destructive'} className="h-2 w-2 p-0 rounded-full" />
+                        <Badge 
+                          variant={item.status === 'ناجح' ? 'outline' : 'destructive'} 
+                          className={item.status === 'ناجح' ? 'h-2 w-2 p-0 rounded-full bg-green-500' : 'h-2 w-2 p-0 rounded-full'} 
+                        />
                         <span className="font-medium">{formatDate(item.date)}</span>
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground truncate max-w-xs">
