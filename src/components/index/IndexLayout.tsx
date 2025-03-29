@@ -10,7 +10,7 @@ interface IndexLayoutProps {
   setShowFileExplorer: React.Dispatch<React.SetStateAction<boolean>>;
   files: FileType[];
   handleFileSelect: (file: FileType) => void;
-  handleFileCreate: (file: FileType, parentId?: string) => void;
+  handleFileCreate: (name: string, type: 'file' | 'folder', parent?: string, language?: string) => void;
   handleFileDelete: (fileId: string) => void;
   handleFileRename: (fileId: string, newName: string) => void;
   handleFileMove: (fileId: string, targetFolderId: string | null) => void;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,6 +14,7 @@ import WorkspaceContent from '@/components/index/WorkspaceContent';
 import { useIndexActions } from '@/components/index/IndexActions';
 import { useAuth } from '@/contexts/AuthContext';
 import LandingPage from '@/components/index/LandingPage';
+import { FileType } from '@/components/FileExplorer/FileExplorer';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -111,7 +111,23 @@ const Index = () => {
   const toggleRealTimePanel = () => {
     setShowRealTimePanel(!showRealTimePanel);
   };
-  
+
+  const handleFileCreate = (name: string, type: 'file' | 'folder', parent?: string, language?: string) => {
+    const now = new Date();
+    const newFile: FileType = {
+      id: `${type}-${Date.now()}`,
+      name,
+      type,
+      language,
+      dateCreated: now,
+      dateModified: now,
+      content: type === 'file' ? '' : undefined,
+      children: type === 'folder' ? [] : undefined
+    };
+    
+    fileActions.handleFileCreate(newFile, parent);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-background">
@@ -123,12 +139,10 @@ const Index = () => {
     );
   }
   
-  // Si el usuario no está autenticado, mostrar página de inicio
   if (!user) {
     return <LandingPage />;
   }
 
-  // Interfaz para usuarios autenticados
   return (
     <div className={`min-h-screen flex flex-col bg-background transition-colors duration-300`}>
       <Header 
@@ -171,7 +185,7 @@ const Index = () => {
             setShowFileExplorer={editor.setShowFileExplorer}
             files={editor.files}
             handleFileSelect={editor.handleFileSelect}
-            handleFileCreate={fileActions.handleFileCreate}
+            handleFileCreate={handleFileCreate}
             handleFileDelete={fileActions.handleFileDelete}
             handleFileRename={fileActions.handleFileRename}
             handleFileMove={fileActions.handleFileMove}
