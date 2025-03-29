@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import FileExplorer from '@/components/FileExplorer/FileExplorer';
@@ -21,12 +20,13 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { createNewFile, createNewFolder } from '@/utils/fileUtils';
 
 interface DesktopLayoutProps {
   showFileExplorer: boolean;
   files: FileType[];
   handleFileSelect: (file: FileType) => void;
-  handleFileCreate: (file: FileType, parentId?: string) => void;
+  handleFileCreate: (name: string, type: 'file' | 'folder', parent?: string, language?: string) => void;
   handleFileDelete: (fileId: string) => void;
   handleFileRename: (fileId: string, newName: string) => void;
   handleFileMove?: (fileId: string, targetFolderId: string | null) => void;
@@ -164,6 +164,12 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
     });
   };
   
+  // Function to adapt the new handleFileCreate signature to what FileExplorer expects
+  const handleFileCreateAdapter = (file: FileType, parentId?: string) => {
+    // Call the new function signature with appropriate parameters
+    handleFileCreate(file.name, file.type, parentId, file.language);
+  };
+  
   return (
     <div className={`flex flex-col h-full transition-all duration-300 ${isExpanded ? 'fixed inset-0 z-50 bg-background' : ''}`}>
       <div className="flex justify-between p-1 bg-card border-b border-border shadow-sm">
@@ -256,7 +262,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                 <FileExplorer 
                   files={files}
                   onFileSelect={handleFileSelect}
-                  onFileCreate={handleFileCreate}
+                  onFileCreate={handleFileCreateAdapter}
                   onFileDelete={handleFileDelete}
                   onFileRename={handleFileRename}
                   onFileMove={handleFileMove}
@@ -374,7 +380,7 @@ const DesktopLayout: React.FC<DesktopLayoutProps> = ({
                 <FileExplorer 
                   files={files}
                   onFileSelect={handleFileSelect}
-                  onFileCreate={handleFileCreate}
+                  onFileCreate={handleFileCreateAdapter}
                   onFileDelete={handleFileDelete}
                   onFileRename={handleFileRename}
                   onFileMove={handleFileMove}
