@@ -15,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DevelopmentTools from './pages/DevelopmentTools';
+import DeploymentGuide from './pages/DeploymentGuide';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => {
                     <DevelopmentTools />
                   </ProtectedRoute>
                 } />
+                <Route path="/deployment-guide" element={<DeploymentGuide />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
