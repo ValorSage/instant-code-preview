@@ -75,6 +75,9 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			fontFamily: {
+				tajawal: ['Tajawal', 'sans-serif'],
+			},
 			keyframes: {
 				'accordion-down': {
 					from: { height: '0' },
@@ -107,6 +110,10 @@ export default {
 				'blur-in': {
 					from: { filter: 'blur(8px)', opacity: '0' },
 					to: { filter: 'blur(0)', opacity: '1' }
+				},
+				'pulse': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
@@ -117,7 +124,8 @@ export default {
 				'slide-up': 'slide-up 0.4s ease-out',
 				'slide-down': 'slide-down 0.4s ease-out',
 				'scale-in': 'scale-in 0.3s ease-out',
-				'blur-in': 'blur-in 0.4s ease-out'
+				'blur-in': 'blur-in 0.4s ease-out',
+				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},

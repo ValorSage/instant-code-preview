@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 
 @layer base {
   :root {
@@ -16,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 240 6% 10%;
+    --primary: 240 80% 50%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 5% 96%;
@@ -35,7 +35,7 @@
     --input: 240 6% 90%;
     --ring: 240 5% 65%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --editor-background: 240 10% 3.9%;
     --editor-foreground: 0 0% 98%;
@@ -53,7 +53,7 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 98%;
+    --primary: 252 100% 70%;
     --primary-foreground: 240 6% 10%;
 
     --secondary: 240 3.7% 15.9%;
@@ -65,7 +65,7 @@
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 3.7% 15.9%;
@@ -85,14 +85,20 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground font-tajawal;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* لتحسين تجربة القراءة باللغة العربية */
+  :lang(ar) {
+    letter-spacing: 0;
+    line-height: 1.7;
   }
 }
 
 @layer utilities {
-  .font-inter {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+  .font-tajawal {
+    font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
   }
   
   .glassmorphism {
@@ -113,6 +119,29 @@
   
   .prose-custom {
     @apply prose prose-gray dark:prose-invert prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-img:rounded-lg;
+  }
+  
+  /* تأثيرات حركية */
+  .hover-lift {
+    @apply transition-all duration-300;
+    transform: translateY(0);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600;
   }
 }
 
@@ -214,4 +243,47 @@
 
 .highlight-change {
   animation: highlight 1s ease-out;
+}
+
+/* للمحافظة على القابلية للقراءة في المحرر */
+.editor-content :lang(ar) {
+  font-family: 'Tajawal', monospace;
+  direction: rtl;
+}
+
+/* Animations */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
