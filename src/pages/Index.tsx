@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -17,6 +16,7 @@ import { useIndexActions } from '@/components/index/IndexActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Github } from 'lucide-react';
 
 const Index = () => {
   const isMobile = useIsMobile();
@@ -32,7 +32,6 @@ const Index = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [direction, setDirection] = useState<'ltr' | 'rtl'>(document.documentElement.dir as 'ltr' | 'rtl');
   
-  // Get file actions from the hook
   const fileActions = useIndexActions({
     files: editor.files,
     selectedFile: editor.selectedFile,
