@@ -27,6 +27,10 @@ const PublishButton: React.FC<PublishButtonProps> = ({
     setIsDialogOpen(false);
   };
   
+  // Provide default values in case currentProject is null
+  const projectName = currentProject?.name || 'مشروع بدون اسم';
+  const projectId = currentProject?.id || 'temp-id';
+  
   return (
     <>
       <Button
@@ -48,6 +52,8 @@ const PublishButton: React.FC<PublishButtonProps> = ({
       <PublishProjectDialog
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}
+        projectName={projectName}
+        projectId={projectId}
       />
     </>
   );
